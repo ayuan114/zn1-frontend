@@ -43,10 +43,10 @@ const items = ref<MenuProps['items']>([
     title: '主页',
   },
   {
-    key: '/about',
+    key: '/blog/edit',
     icon: () => h(AppstoreOutlined),
-    label: '关于',
-    title: '关于',
+    label: '编辑',
+    title: '博客',
   },
 ])
 
@@ -67,10 +67,6 @@ router.afterEach((to, from, next) => {
   current.value = [to.path]
 })
 
-import { healthUsingGet } from '@/api/mainController'
-healthUsingGet().then((res) => {
-  console.log(res)
-})
 
 import { useLoginUserStore } from '@/stores/useLonginUserStore'
 
