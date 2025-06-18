@@ -9,7 +9,7 @@
       </a-layout-content>
 
       <a-layout-footer class="footer">
-        <a href="https://www.baidu.com" target="_blank"> ZN1 by 程序员jizy </a>
+        <a href="https://www.baidu.com" target="_blank">@2025  ZN1 by ayuan </a>
       </a-layout-footer>
     </a-layout>
   </div>
