@@ -1,11 +1,10 @@
 <template>
-  <div id="BlogEidt" style="display: flex; justify-content: center; align-items: center">
+  <div id="BlogEidt">
     <div>
       <div class="app-container">
         <!-- 头部 -->
         <div class="header">
           <h1>博客文章编辑器</h1>
-          <p>使用Vue3组合式API构建的现代编辑器</p>
         </div>
       </div>
 
@@ -13,7 +12,6 @@
         layout="vertical"
         :model="blogArticleForm"
         @finish="handleSubmit"
-        style="position: absolute; width: 800px"
       >
         <a-form-item label="标题" name="name">
           <a-input v-model:value="blogArticleForm.title" placeholder="请输入标题" />
@@ -24,7 +22,7 @@
             v-model:content="blogArticleForm.content"
             :options="options"
             contentType="html"
-            style="height: 150px"
+            style="height: 280px"
             allowClear
           ></quill-editor>
         </a-form-item>
@@ -46,10 +44,8 @@
           />
         </a-form-item>
 
-        <a-form-item style="width: 50%; display: flex; align-items: center; justify-content: center;">
-          <a-button type="primary" html-type="submit" style="width: 50%; display: flex; align-items: center; justify-content: center;"
-            >创建文章</a-button
-          >
+        <a-form-item>
+          <a-button type="primary" html-type="submit" style="width: 100%; display: flex; justify-content: center;">创建文章</a-button>
         </a-form-item>
       </a-form>
     </div>
@@ -60,7 +56,7 @@
 import { queryCategoryDataUsingPost, queryTagDataUsingPost } from '@/api/blogArticleController'
 import { message } from 'ant-design-vue'
 import { log } from 'console'
-import { onMounted, reactive, ref } from 'vue'
+import { nextTick, onMounted, reactive, ref } from 'vue'
 
 // 引入富文本编辑器与样式
 import { Quill, QuillEditor } from '@vueup/vue-quill'
@@ -234,8 +230,19 @@ onMounted(() => {
     initTitle()
   })
   // 给富文本增加粘贴事件
-  editorRef.value.getQuill().root.addEventListener('customPaste', customPaste, false)
+
 })
 </script>
 
-<style scoped></style>
+<style scoped>
+#BlogEidt {
+  width: 800px;
+  margin: 0 auto;
+}
+
+#BlogEidt .header{
+  display: flex;
+  justify-content: center;
+  margin-bottom: 15px;
+}
+</style>

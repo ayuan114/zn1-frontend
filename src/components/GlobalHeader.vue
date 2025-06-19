@@ -1,32 +1,27 @@
 <template>
   <div id="globalHeader">
-    <a-row :wrap="false">
-      <a-col flex="200px">
+    <div class="heater">
+      <div style="margin-right: 250px;">
         <RouterLink to="/">
           <div class="title-bar">
             <img class="logo" src="../assets/favicon.ico" alt="logo" />
             <div class="title">ZN1</div>
           </div>
         </RouterLink>
-      </a-col>
-      <a-col flex="auto">
+      </div>
+      <div class="items">
         <a-menu
           v-model:selectedKeys="current"
           mode="horizontal"
           :items="items"
           @click="doMenuClick"
         />
-      </a-col>
-      <a-col flex="120px">
-        <div class="user-login-status">
-          <div v-if="loginUserStore.loginUser.id">
-            {{ loginUserStore.loginUser.userName ?? '无名' }}
-          </div>
-          <div v-else>
-            <a-button type="primary" href="/user/login">登录</a-button>
-          </div>
-        </div>
-      </a-col>
+      </div>
+    </div>
+
+    <a-row :wrap="false">
+      <a-col flex="200px"> </a-col>
+      <a-col flex="auto"> </a-col>
     </a-row>
   </div>
 </template>
@@ -67,15 +62,22 @@ router.afterEach((to, from, next) => {
   current.value = [to.path]
 })
 
-
 import { useLoginUserStore } from '@/stores/useLonginUserStore'
 
 const loginUserStore = useLoginUserStore()
 loginUserStore.fetchLoginUser()
-
 </script>
 
 <style scoped>
+#globalHeader .heater{
+  display: flex;
+  justify-content: center;
+  margin: 0 auto;
+}
+
+#globalHeader {
+  margin: 0 auto;
+}
 .title-bar {
   display: flex;
   align-items: center;
