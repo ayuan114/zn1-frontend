@@ -1,9 +1,7 @@
 <template>
   <div id="basicLayout">
     <a-layout style="min-height: 100vh">
-      <a-layout-header class="header">
-       <GlobalHeader />
-      </a-layout-header>
+
       <a-layout-content class="content">
         <router-view />
       </a-layout-content>

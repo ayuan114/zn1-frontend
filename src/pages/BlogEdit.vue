@@ -1,12 +1,24 @@
 <template>
   <div id="BlogEidt">
     <div>
-      <div class="app-container">
-        <!-- 头部 -->
-        <div class="header">
-          <h1>博客文章编辑器</h1>
-        </div>
+    <div class="heater_menu" style="display: flex; justify-content:baseline; margin: 0 auto">
+      <div>
+        <RouterLink to="/">
+          <div class="title-bar">
+            <img class="logo" src="../assets/favicon.ico" alt="logo" />
+            <div class="title">ZN1</div>
+          </div>
+        </RouterLink>
       </div>
+      <div class="items">
+        <a-menu
+          v-model:selectedKeys="current"
+          mode="horizontal"
+          :items="items"
+          @click="doMenuClick"
+        />
+      </div>
+    </div>
 
  <a-form
     layout="vertical"
@@ -86,7 +98,7 @@
 import { createBlogArticleUsingPost, queryCategoryDataUsingPost, queryTagDataUsingPost, uploadUsingPost } from '@/api/blogArticleController'
 import { message } from 'ant-design-vue'
 import { log } from 'console'
-import { nextTick, onMounted, reactive, ref } from 'vue'
+import { nextTick, onMounted, reactive, ref, h } from 'vue'
 
 // 引入富文本编辑器与样式
 import { Quill, QuillEditor } from '@vueup/vue-quill'
@@ -95,6 +107,24 @@ import '@vueup/vue-quill/dist/vue-quill.snow.css'
 // 引入缩放图片的插件
 import BlotFormatter from 'quill-blot-formatter'
 Quill.register('modules/blotFormatter', BlotFormatter)
+
+import { MailOutlined, AppstoreOutlined, SettingOutlined } from '@ant-design/icons-vue'
+import { MenuProps } from 'ant-design-vue'
+
+const items = ref<MenuProps['items']>([
+  {
+    key: '/',
+    icon: () => h(MailOutlined),
+    label: '主页',
+    title: '主页',
+  },
+  {
+    key: '/blog/edit',
+    icon: () => h(AppstoreOutlined),
+    label: '编辑',
+    title: '博客',
+  },
+])
 
 const blogArticle = ref<API.BlogArticle>()
 const blogArticleForm = reactive<API.BlogArticleDTO>({})
@@ -411,6 +441,12 @@ const showPreview = () => {
   display: flex;
   justify-content: center;
   margin-bottom: 30px;  /* 增加底部间距 */
+}
+
+#BolgEidt .header_menu {
+  display: flex;
+  justify-content: center;
+  margin: 0 auto;
 }
 
 #BlogEidt .header h1 {
