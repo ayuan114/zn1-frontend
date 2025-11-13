@@ -5,7 +5,6 @@
         <!-- 头部 -->
         <div class="header">
           <h1>博客文章编辑器</h1>
-          <h4>{{ blogArticleForm }}</h4>
         </div>
       </div>
 
@@ -27,7 +26,7 @@
             allowClear
           ></quill-editor>
         </a-form-item>
-        <a-form-item label="分类" name="category">
+        <a-form-item label="分类" name="category_id">
         <a-auto-complete
   v-model:value="categoryDisplayValue"
   :options="categoryOptions"
