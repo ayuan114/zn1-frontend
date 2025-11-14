@@ -5,12 +5,6 @@ declare namespace API {
     message?: string
   }
 
-  type BaseResponseListBlogArticle_ = {
-    code?: number
-    data?: BlogArticle[]
-    message?: string
-  }
-
   type BaseResponseListCategory_ = {
     code?: number
     data?: Category[]
@@ -23,6 +17,12 @@ declare namespace API {
     message?: string
   }
 
+  type BaseResponsePageBlogArticle_ = {
+    code?: number
+    data?: PageBlogArticle_
+    message?: string
+  }
+
   type BaseResponseString_ = {
     code?: number
     data?: string
@@ -31,20 +31,25 @@ declare namespace API {
 
   type BlogArticle = {
     author_id?: number
-    category_id?: number
+    categoryId?: number
     content?: string
-    create_time?: string
+    createTime?: string
     id?: number
     status?: Record<string, any>
     tags?: string
     title?: string
-    update_time?: string
+    updateTime?: string
   }
 
   type BlogArticleDTO = {
     author_id?: number
     category_id?: number
     content?: string
+    current?: number
+    id?: number
+    pageSize?: number
+    sortField?: string
+    sortOrder?: string
     status?: string
     tags?: string
     title?: string
@@ -92,6 +97,14 @@ declare namespace API {
     readable?: boolean
     uri?: URI
     url?: URL
+  }
+
+  type PageBlogArticle_ = {
+    current?: number
+    pages?: number
+    records?: BlogArticle[]
+    size?: number
+    total?: number
   }
 
   type queryArticleIdByDetailUsingPOSTParams = {

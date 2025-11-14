@@ -1,24 +1,23 @@
 <template>
   <div id="BlogEidt">
     <div>
-    <div class="heater_menu" style="display: flex; justify-content:baseline; margin: 0 auto">
-      <div>
-        <RouterLink to="/">
-          <div class="title-bar">
-            <img class="logo" src="../assets/favicon.ico" alt="logo" />
-            <div class="title">ZN1</div>
-          </div>
-        </RouterLink>
-      </div>
-      <div class="items">
-        <a-menu
-          v-model:selectedKeys="current"
-          mode="horizontal"
-          :items="items"
-          @click="doMenuClick"
-        />
-      </div>
+<div class="header-menu">
+  <RouterLink to="/" class="title-bar">
+    <div class="title-container">
+      <div class="title">JI'S BLOG</div>
+      <div class="subtitle">热衷于编程，做饭，收集，游戏，动漫</div>
     </div>
+  </RouterLink>
+  <div class="menu-container">
+    <a-menu
+      v-model:selectedKeys="current"
+      mode="horizontal"
+      :items="items"
+      @click="doMenuClick"
+    />
+  </div>
+</div>
+
 
  <a-form
     layout="vertical"
@@ -62,7 +61,10 @@
               <!-- ... 其他代码 ... -->
     <a-form-item>
       <a-space style="width: 100%; display: flex; justify-content: center;">
-        <a-button type="primary" html-type="submit">创建文章</a-button>
+        <a-button type="primary" html-type="submit">
+  {{ isEdit ? '更新文章' : '创建文章' }}
+</a-button>
+
         <a-button @click="showPreview">预览</a-button>
       </a-space>
     </a-form-item>
@@ -95,7 +97,7 @@
 </template>
 
 <script setup lang="ts">
-import { createBlogArticleUsingPost, queryCategoryDataUsingPost, queryTagDataUsingPost, uploadUsingPost } from '@/api/blogArticleController'
+import { createBlogArticleUsingPost, queryArticleIdByDetailUsingPost, queryCategoryDataUsingPost, queryTagDataUsingPost, uploadUsingPost } from '@/api/blogArticleController'
 import { message } from 'ant-design-vue'
 import { log } from 'console'
 import { nextTick, onMounted, reactive, ref, h } from 'vue'
@@ -114,17 +116,32 @@ import { MenuProps } from 'ant-design-vue'
 const items = ref<MenuProps['items']>([
   {
     key: '/',
-    icon: () => h(MailOutlined),
-    label: '主页',
-    title: '主页',
+    //icon: () => h(MailOutlined),
+    label: h(RouterLink, { to: '/' }, () => '首页'),
+    title: '首页',
   },
   {
     key: '/blog/edit',
-    icon: () => h(AppstoreOutlined),
-    label: '编辑',
+    //icon: () => h(AppstoreOutlined),
+    label: h(RouterLink, { to: '/blog/edit' }, () => '编辑'),
     title: '博客',
   },
 ])
+
+import { RouterLink, useRoute, useRouter } from 'vue-router'
+const router = useRouter()
+
+//路由跳转事件
+const doMenuClick = ({ key }: { key: string }) => {
+  router.push({
+    path: key,
+  })
+}
+
+
+//当前选中菜单
+const current = ref<string[]>(['/blog/edit'])
+
 
 const blogArticle = ref<API.BlogArticle>()
 const blogArticleForm = reactive<API.BlogArticleDTO>({})
@@ -371,7 +388,6 @@ console.log(blogArticleForm,'qqqq1')
 
 // 在 BlogEdit.vue 中添加
 const handleSubmit = async (values: API.BlogArticleDTO) => {
-  console.log('提交的表单数据:', values)
   try {
     // 验证必填字段
     if (!values.title?.trim()) {
@@ -387,23 +403,35 @@ const handleSubmit = async (values: API.BlogArticleDTO) => {
       return
     }
 
-
     // 将tags数组转换为字符串
     const submitData = {
       ...values,
       tags: Array.isArray(values.tags) ? values.tags.join(',') : values.tags
     }
-    const res = await createBlogArticleUsingPost(submitData)
-    if (res.data.code === 0) {
-      message.success('文章创建成功')
-      // 可以在这里添加路由跳转逻辑
+
+    let res
+    if (isEdit) {
+      // 更新文章
+      res = await createBlogArticleUsingPost({
+        ...submitData,
+        id: Number(articleId)
+      })
     } else {
-      message.error('创建失败，' + res.data.message)
+      // 创建新文章
+      res = await createBlogArticleUsingPost(submitData)
+    }
+
+    if (res.data.code === 0) {
+      message.success(isEdit ? '文章更新成功' : '文章创建成功')
+      router.push('/blog/admin')  // 操作完成后跳转到管理页面
+    } else {
+      message.error((isEdit ? '更新' : '创建') + '失败，' + res.data.message)
     }
   } catch (error) {
-    message.error('创建失败，请稍后重试')
+    message.error((isEdit ? '更新' : '创建') + '失败，请稍后重试')
   }
 }
+
 
 
 // 添加预览相关的响应式变量
@@ -422,6 +450,55 @@ const showPreview = () => {
   previewVisible.value = true
 }
 
+// 获取路由参数中的文章id
+const route = useRoute()
+const articleId = route.query.id as string
+const isEdit = !!articleId  // 判断是否为编辑模式
+
+// 如果是编辑模式，获取文章详情
+onMounted(async () => {
+  await Promise.all([
+    getCategoryOptions(),
+    getTagOptions()
+  ])
+
+  if (isEdit) {
+    await fetchArticleDetail()
+  }
+
+  nextTick(() => {
+    const quill = editorRef.value?.getQuill()
+    if (quill) {
+      quill.root.addEventListener('paste', customPaste)
+      initTitle()
+    }
+  })
+})
+
+
+// 获取文章详情
+const fetchArticleDetail = async () => {
+  if (!articleId) return
+  try {
+    const res = await queryArticleIdByDetailUsingPost({
+      id: Number(articleId)
+    })
+    if (res.data.code === 0 && res.data.data) {
+      const article = res.data.data
+      blogArticleForm.title = article.title
+      blogArticleForm.content = article.content
+      blogArticleForm.category_id = article.categoryId
+      blogArticleForm.tags = article.tags ? article.tags.split(',') : []
+      categoryDisplayValue.value = getCategoryName(article.categoryId)
+    } else {
+      message.error('获取文章详情失败：' + res.data.message)
+    }
+  } catch (error) {
+    message.error('获取文章详情失败，请重试')
+  }
+}
+
+
 
 
 
@@ -437,17 +514,88 @@ const showPreview = () => {
   box-shadow: 0 2px 12px rgba(0,0,0,0.1);
 }
 
-#BlogEidt .header {
+.header-menu {
   display: flex;
-  justify-content: center;
-  margin-bottom: 30px;  /* 增加底部间距 */
+  align-items: center;
+  justify-content: space-between;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f0f0;
+  position: sticky;
+  top: 0;
+  background: #fff;
+  z-index: 100;
 }
 
-#BolgEidt .header_menu {
+.title-bar {
   display: flex;
-  justify-content: center;
-  margin: 0 auto;
+  align-items: center;
+  text-decoration: none;
+  transition: transform 0.3s ease;
 }
+
+.title-bar:hover {
+  transform: scale(1.05);
+}
+
+.title-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: bold;
+  background: linear-gradient(45deg, #1890ff, #36cfc9);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+  margin-bottom: 4px;
+  letter-spacing: 2px;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: #666;
+  letter-spacing: 1px;
+  opacity: 0.8;
+}
+
+.menu-container {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+}
+
+:deep(.ant-menu-horizontal) {
+  border-bottom: none;
+  background: transparent;
+  justify-content: flex-end;
+}
+
+:deep(.ant-menu-item) {
+  font-size: 16px;
+  font-weight: 500;
+  margin: 0 16px;
+}
+
+
+@media (max-width: 768px) {
+  .title {
+    font-size: 24px;
+  }
+
+  .subtitle {
+    font-size: 12px;
+  }
+
+  :deep(.ant-menu-item) {
+    margin: 0 8px;
+  }
+}
+
 
 #BlogEidt .header h1 {
   color: #1a1a1a;

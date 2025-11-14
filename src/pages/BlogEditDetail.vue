@@ -1,5 +1,5 @@
 <template>
-<div id="HomePage">
+<div id="BlogEditDetil">
   <div>
     <div class="header-menu">
   <RouterLink to="/" class="title-bar">
@@ -18,53 +18,20 @@
   </div>
     </div>
 <div class="content">
-
-<div class="article-list">
   <a-spin :spinning="loading">
-    <a-list
-      item-layout="vertical"
-      size="large"
-      :data-source="articles"
-    >
-        <template #renderItem="{ item }">
-          <a-list-item key="item.id">
-            <a-list-item-meta>
-<template #title>
-  <RouterLink :to="`/blog/detail?id=${item.id}`">
-    {{ item.title }}
-  </RouterLink>
-</template>
+    <div v-if="articles" class="article-detail">
+      <h1 class="article-title">{{ articles.title }}</h1>
+<div class="article-meta">
+  <span v-if="articles.categoryId">分类：{{ getCategoryName(articles.categoryId) }}</span>
+  <span v-if="articles.tags">标签：{{ getTagNames(articles.tags) }}</span>
+  <span class="create-time">{{ formatDate(articles.createTime) }}</span>
+</div>
 
-
-
-
-<template #description>
-  <span class="article-meta">
-    <span v-if="item.categoryId">分类：{{ getCategoryName(item.categoryId) }}</span>
-    <span v-if="item.tags">标签：{{ getTagNames(item.tags) }}</span>
-    <span> {{ formatDate(item.createTime) }}</span>
-  </span>
-</template>
-
-            </a-list-item-meta>
-            <div class="article-content" v-html="item.content"></div>
-          </a-list-item>
-        </template>
-      </a-list>
-    <div class="pagination-container">
-      <a-pagination
-        v-model:current="pagination.current"
-        :total="pagination.total"
-        :pageSize="pagination.pageSize"
-        @change="pagination.onChange"
-
-        showQuickJumper
-        :show-total="(total, range) => `共 ${total} 条`"
-      />
+      <div class="article-content" v-html="articles.content"></div>
     </div>
   </a-spin>
 </div>
-</div>
+
 
   </div>
 </div>
@@ -72,7 +39,7 @@
 </template>
 
 <script setup lang="ts">
-import { createBlogArticleUsingPost, queryBlogArticleTitleUsingPost, queryCategoryDataUsingPost, queryTagDataUsingPost, uploadUsingPost } from '@/api/blogArticleController'
+import { createBlogArticleUsingPost, queryArticleIdByDetailUsingPost, queryBlogArticleTitleUsingPost, queryCategoryDataUsingPost, queryTagDataUsingPost, uploadUsingPost } from '@/api/blogArticleController'
 import { message } from 'ant-design-vue'
 import { log } from 'console'
 import { nextTick, onMounted, reactive, ref, h } from 'vue'
@@ -101,8 +68,9 @@ const items = ref<MenuProps['items']>([
   },
 ])
 
-import { RouterLink, useRouter } from 'vue-router'
-const router = useRouter()
+import { useRoute, RouterLink } from 'vue-router'
+const route = useRoute()
+const articleId = route.query.id
 
 
 //路由跳转事件
@@ -117,8 +85,9 @@ const current = ref<string[]>(['/'])
 
 
 
-const articles = ref<API.BlogArticle[]>([])
+const articles = ref<API.BlogArticle>()
 const loading = ref(false)
+articles.value?.id
 
 
 
@@ -134,22 +103,17 @@ const pagination = reactive({
 
 // 修改 fetchArticles 函数
 const fetchArticles = async () => {
+  if (!articleId) return
   loading.value = true
   try {
-    const res = await queryBlogArticleTitleUsingPost({
-      current: pagination.current,
-      pageSize: pagination.pageSize,
+    const res = await queryArticleIdByDetailUsingPost({
+      id: Number(articleId),
     })
     if (res.data.code === 0 && res.data.data) {
-      articles.value = res.data.data.records || []
-      pagination.total = res.data.data.total || 0
-      console.log('',res.data.data.records)
-      console.log('11111',articles.value)
-    } else {
-      message.error('获取文章列表失败，' + res.data.message)
+      articles.value = res.data.data
     }
   } catch (error) {
-    message.error('获取文章列表失败，请重试')
+    message.error('获取文章详情失败')
   } finally {
     loading.value = false
   }
@@ -226,11 +190,10 @@ onMounted(() => {
   getTagOptions();
 })
 
-
 </script>
 
 <style scoped>
-#HomePage {
+#BlogEditDetil {
   width: 900px;
   margin: 20px auto;
   padding: 20px;
@@ -321,169 +284,48 @@ onMounted(() => {
   }
 }
 
-.article-list {
-  margin-top: 40px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-
-.article-list :deep(.ant-list-item) {
-  padding: 24px;
-  margin-bottom: 16px;
-  border: 1px solid transparent; /* 修改为透明边框 */
-  border-radius: 8px;
-  background: #fff;
-  transition: all 0.3s;
-}
-
-
-.article-list :deep(.ant-list-item:hover) {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-  transform: translateY(-2px);
-}
-
-
-.article-list :deep(.ant-list-item-meta-title) {
-  font-size: 20px;
-  font-weight: 600;
-  margin-bottom: 12px;
-}
-
-.article-list :deep(.ant-list-item-meta-title a) {
-  color: #333;
-  text-decoration: none;
-  transition: color 0.3s;
-}
-
-.article-list :deep(.ant-list-item-meta-title a:hover) {
-  color: #1890ff;
-}
-
 .article-meta {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 16px;
   color: #666;
   font-size: 14px;
   margin-bottom: 16px;
 }
 
-.article-meta span {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+.create-time {
+  margin-left: auto;
 }
 
-.article-meta span:last-child {
-  margin-left: auto; /* 添加这行 */
+
+.article-detail {
+  padding: 24px;
+  background: #fff;
+  border-radius: 8px;
 }
 
-.article-meta span::before {
-  content: '';
-  display: inline-block;
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: #1890ff;
+.article-title {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #333;
+  text-align: center;  /* 添加这行实现标题居中 */
 }
-
 
 .article-content {
   color: #333;
   line-height: 1.8;
   margin-top: 16px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  min-height: 84px;
-  max-height: 84px; /* 添加最大高度限制 */
-  position: relative; /* 添加相对定位 */
 }
 
 .article-content :deep(img) {
   max-width: 100%;
   height: auto;
   border-radius: 4px;
-  display: none; /* 隐藏图片以保持等高 */
+  margin: 16px auto;  /* 修改这里，使用 auto 实现水平居中 */
+  display: block;     /* 添加这行，使 margin auto 生效 */
 }
 
-.article-content :deep(p) {
-  margin: 0;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 3;
-  overflow: hidden;
-}
-
-.pagination-container {
-  margin-top: 32px;
-  padding: 20px 0;
-  text-align: center;
-  background: #fff;
-  border-radius: 8px;
-}
-
-.pagination-container :deep(.ant-pagination) {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.pagination-container :deep(.ant-pagination-item) {
-  border-radius: 4px;
-  border: 1px solid #d9d9d9;
-  transition: all 0.3s;
-}
-
-.pagination-container :deep(.ant-pagination-item:hover) {
-  border-color: #1890ff;
-  color: #1890ff;
-}
-
-.pagination-container :deep(.ant-pagination-item-active) {
-  background: #1890ff;
-  border-color: #1890ff;
-}
-
-.pagination-container :deep(.ant-pagination-item-active a) {
-  color: #fff;
-}
-
-.pagination-container :deep(.ant-pagination-prev),
-.pagination-container :deep(.ant-pagination-next) {
-  border-radius: 4px;
-  transition: all 0.3s;
-}
-
-.pagination-container :deep(.ant-pagination-prev:hover),
-.pagination-container :deep(.ant-pagination-next:hover) {
-  border-color: #1890ff;
-}
-
-.pagination-container :deep(.ant-pagination-jump-prev),
-.pagination-container :deep(.ant-pagination-jump-next) {
-  border-radius: 4px;
-}
-
-.pagination-container :deep(.ant-pagination-options) {
-  margin-left: 16px;
-}
-
-.pagination-container :deep(.ant-pagination-options-size-changer) {
-  border-radius: 4px;
-}
-
-.pagination-container :deep(.ant-pagination-options-quick-jumper) {
-  margin-left: 16px;
-}
-
-.pagination-container :deep(.ant-pagination-options-quick-jumper input) {
-  border-radius: 4px;
-}
 
 </style>

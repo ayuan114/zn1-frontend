@@ -1,23 +1,25 @@
 <template>
   <div id="globalHeader">
-    <div class="heater">
-      <div style="margin-right: 250px;">
-        <RouterLink to="/">
-          <div class="title-bar">
-            <img class="logo" src="../assets/favicon.ico" alt="logo" />
-            <div class="title">ZN1</div>
-          </div>
-        </RouterLink>
-      </div>
-      <div class="items">
-        <a-menu
-          v-model:selectedKeys="current"
-          mode="horizontal"
-          :items="items"
-          @click="doMenuClick"
-        />
-      </div>
+    <div class="header">
+  <div class="header-content">
+    <RouterLink to="/" class="title-bar">
+      <img class="logo" src="../assets/favicon.ico" alt="logo" />
+      <div class="title">ZN1</div>
+    </RouterLink>
+    <div class="menu-container">
+      <a-menu
+        v-model:selectedKeys="current"
+        mode="horizontal"
+        :items="items"
+        @click="doMenuClick"
+      />
     </div>
+    <div class="user-info">
+      <!-- 可以在这里添加用户信息显示 -->
+    </div>
+  </div>
+</div>
+
 
     <a-row :wrap="false">
       <a-col flex="200px"> </a-col>
@@ -69,27 +71,70 @@ loginUserStore.fetchLoginUser()
 </script>
 
 <style scoped>
-#globalHeader .heater{
-  display: flex;
-  justify-content: center;
-  margin: 0 auto;
+#globalHeader {
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
 }
 
-#globalHeader {
+.header {
+  max-width: 1200px;
   margin: 0 auto;
+  padding: 0 24px;
 }
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+}
+
 .title-bar {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.title {
+  color: #1890ff;
+  font-size: 20px;
+  font-weight: 600;
+  margin-left: 12px;
+}
+
+.logo {
+  height: 32px;
+}
+
+.menu-container {
+  flex: 1;
+  margin: 0 24px;
+  border-bottom: none;
+}
+
+.user-info {
   display: flex;
   align-items: center;
 }
 
-.title {
-  color: black;
-  font-size: 18px;
-  margin-left: 16px;
+@media (max-width: 768px) {
+  .header-content {
+    padding: 0 16px;
+  }
+
+  .menu-container {
+    margin: 0 16px;
+  }
+
+  .title {
+    font-size: 18px;
+  }
 }
 
-.logo {
-  height: 48px;
-}
+
 </style>

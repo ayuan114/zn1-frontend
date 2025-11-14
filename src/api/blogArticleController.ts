@@ -58,7 +58,7 @@ export async function queryBlogArticleTitleUsingPost(
   body: API.BlogArticleDTO,
   options?: { [key: string]: any }
 ) {
-  return request<API.BaseResponseListBlogArticle_>('/api/blog/article/query/title', {
+  return request<API.BaseResponsePageBlogArticle_>('/api/blog/article/query/title', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

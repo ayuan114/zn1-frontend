@@ -1,5 +1,5 @@
 <template>
-<div id="HomePage">
+<div id="AdminHomePage">
   <div>
     <div class="header-menu">
   <RouterLink to="/" class="title-bar">
@@ -43,15 +43,27 @@
     <span v-if="item.categoryId">分类：{{ getCategoryName(item.categoryId) }}</span>
     <span v-if="item.tags">标签：{{ getTagNames(item.tags) }}</span>
     <span> {{ formatDate(item.createTime) }}</span>
-  </span>
-</template>
+   </span>
+    </template>
 
             </a-list-item-meta>
             <div class="article-content" v-html="item.content"></div>
+                              <div class="article-actions">
+  <a-button type="primary" @click="handleEdit(item.id)">
+    <template #icon><EditOutlined /></template>
+    编辑
+  </a-button>
+  <a-button type="primary" danger @click="handleDelete(item.id)">
+    <template #icon><DeleteOutlined /></template>
+    删除
+  </a-button>
+</div>
           </a-list-item>
+
         </template>
+
       </a-list>
-    <div class="pagination-container">
+     <div class="pagination-container">
       <a-pagination
         v-model:current="pagination.current"
         :total="pagination.total"
@@ -85,14 +97,20 @@ import '@vueup/vue-quill/dist/vue-quill.snow.css'
 import BlotFormatter from 'quill-blot-formatter'
 Quill.register('modules/blotFormatter', BlotFormatter)
 
-import { MailOutlined, AppstoreOutlined, SettingOutlined } from '@ant-design/icons-vue'
 import { MenuProps } from 'ant-design-vue'
+import { EditOutlined, DeleteOutlined } from '@ant-design/icons-vue'
+
 
 const items = ref<MenuProps['items']>([
   {
     key: '/',
     label: h(RouterLink, { to: '/' }, () => '首页'),
     title: '首页',
+  },
+    {
+    key: '/blog/admin',
+    label: h(RouterLink, { to: '/blog/admin' }, () => '管理员首页'),
+    title: '博客',
   },
   {
     key: '/blog/edit',
@@ -226,11 +244,35 @@ onMounted(() => {
   getTagOptions();
 })
 
+// 编辑文章
+const handleEdit = (id: number) => {
+  router.push({
+    path: '/blog/edit',
+    query: { id }
+  })
+}
+
+// 删除文章
+const handleDelete = async (id: number) => {
+  try {
+    const res = await deleteBlogArticleUsingPost({ id })
+    if (res.data.code === 0) {
+      message.success('删除成功')
+      fetchArticles() // 重新获取文章列表
+    } else {
+      message.error('删除失败，' + res.data.message)
+    }
+  } catch (error) {
+    message.error('删除失败，请重试')
+  }
+}
+
+
 
 </script>
 
 <style scoped>
-#HomePage {
+#AdminHomePage {
   width: 900px;
   margin: 20px auto;
   padding: 20px;
@@ -485,5 +527,25 @@ onMounted(() => {
 .pagination-container :deep(.ant-pagination-options-quick-jumper input) {
   border-radius: 4px;
 }
+
+.article-actions {
+  margin-top: 16px;
+  display: flex;
+  gap: 12px;
+}
+
+.article-actions .ant-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 4px;
+  transition: all 0.3s;
+}
+
+.article-actions .ant-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
 
 </style>

@@ -1,15 +1,15 @@
 <template>
   <div id="basicLayout">
     <a-layout style="min-height: 100vh">
-      <!-- <a-layout-header class="header">
+       <!-- <a-layout-header class="header">
        <GlobalHeader />
-      </a-layout-header> -->
+      </a-layout-header>-->
       <a-layout-content class="content">
         <router-view />
       </a-layout-content>
 
       <a-layout-footer class="footer">
-        <a href="https://www.baidu.com" target="_blank">@2025  ZN1 by ayuan </a>
+        <a href="https://www.baidu.com" target="_blank">@2025  JI'S BLOG by JI </a>
       </a-layout-footer>
     </a-layout>
   </div>
@@ -31,11 +31,13 @@ import GlobalHeader from '@/components/GlobalHeader.vue'
   left: 0;
   right: 0;
   text-align: center;
+  box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
 }
+
 
 #basicLayout .content {
   background: linear-gradient(to right, #fefefe, #fff);
-  margin-bottom: 28px;
+  margin-bottom: 48px;
   padding: 20px;
 }
 
