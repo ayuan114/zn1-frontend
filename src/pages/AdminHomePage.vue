@@ -1,91 +1,82 @@
 <template>
-<div id="AdminHomePage">
-  <div>
-    <div class="header-menu">
-  <RouterLink to="/" class="title-bar">
-    <div class="title-container">
-      <div class="title">JI'S BLOG</div>
-      <div class="subtitle">热衷于编程，做饭，收集，游戏，动漫</div>
+  <div id="AdminHomePage">
+    <div>
+      <div class="header-menu">
+        <RouterLink to="/" class="title-bar">
+          <div class="title-container">
+            <div class="title">JI'S BLOG</div>
+            <div class="subtitle">热衷于编程，做饭，收集，游戏，动漫</div>
+          </div>
+        </RouterLink>
+        <div class="menu-container">
+          <a-menu v-model:selectedKeys="current" mode="horizontal" :items="items" @click="doMenuClick" />
+        </div>
+      </div>
+      <div class="content">
+
+        <div class="article-list">
+          <a-spin :spinning="loading">
+            <a-list item-layout="vertical" size="large" :data-source="articles">
+              <template #renderItem="{ item }">
+                <a-list-item key="item.id" class="article-item" @click="(e) => {
+                  if (!e.target.closest('.article-actions')) {
+                    router.push(`/blog/detail?id=${item.id}`)
+                  }
+                }">
+
+                  <a-list-item-meta>
+                    <template #title>
+                      <RouterLink :to="`/blog/detail?id=${item.id}`" @click.stop>
+                        {{ item.title }}
+                      </RouterLink>
+                    </template>
+                    <template #description>
+                      <span class="article-meta">
+                        <span v-if="item.categoryId">分类：{{ getCategoryName(item.categoryId) }}</span>
+                        <span v-if="item.tags">标签：{{ getTagNames(item.tags) }}</span>
+                        <span> {{ formatDate(item.createTime) }}</span>
+                      </span>
+                    </template>
+
+                  </a-list-item-meta>
+                  <div class="article-content" v-html="item.content"></div>
+                  <div class="article-actions" @click.stop>
+                    <a-button type="primary" class="edit-btn" @click.stop="handleEdit(item.id)">
+                      <template #icon>
+                        <EditOutlined />
+                      </template>
+                      编辑
+                    </a-button>
+                    <a-button type="primary" danger class="delete-btn" @click.stop="showDeleteConfirm(item.id)">
+                      <template #icon>
+                        <DeleteOutlined />
+                      </template>
+                      删除
+                    </a-button>
+                  </div>
+
+                </a-list-item>
+
+              </template>
+
+            </a-list>
+            <div class="pagination-container">
+              <a-pagination v-model:current="pagination.current" :total="pagination.total"
+                :pageSize="pagination.pageSize" @change="pagination.onChange" showQuickJumper
+                :show-total="(total, range) => `共 ${total} 条`" />
+            </div>
+          </a-spin>
+        </div>
+      </div>
+
     </div>
-  </RouterLink>
-  <div class="menu-container">
-    <a-menu
-      v-model:selectedKeys="current"
-      mode="horizontal"
-      :items="items"
-      @click="doMenuClick"
-    />
   </div>
-    </div>
-<div class="content">
-
-<div class="article-list">
-  <a-spin :spinning="loading">
-    <a-list
-      item-layout="vertical"
-      size="large"
-      :data-source="articles"
-    >
-        <template #renderItem="{ item }">
-          <a-list-item key="item.id">
-            <a-list-item-meta>
-<template #title>
-  <RouterLink :to="`/blog/detail?id=${item.id}`">
-    {{ item.title }}
-  </RouterLink>
-</template>
-
-
-
-
-<template #description>
-  <span class="article-meta">
-    <span v-if="item.categoryId">分类：{{ getCategoryName(item.categoryId) }}</span>
-    <span v-if="item.tags">标签：{{ getTagNames(item.tags) }}</span>
-    <span> {{ formatDate(item.createTime) }}</span>
-   </span>
-    </template>
-
-            </a-list-item-meta>
-            <div class="article-content" v-html="item.content"></div>
-                              <div class="article-actions">
-  <a-button type="primary" @click="handleEdit(item.id)">
-    <template #icon><EditOutlined /></template>
-    编辑
-  </a-button>
-  <a-button type="primary" danger @click="handleDelete(item.id)">
-    <template #icon><DeleteOutlined /></template>
-    删除
-  </a-button>
-</div>
-          </a-list-item>
-
-        </template>
-
-      </a-list>
-     <div class="pagination-container">
-      <a-pagination
-        v-model:current="pagination.current"
-        :total="pagination.total"
-        :pageSize="pagination.pageSize"
-        @change="pagination.onChange"
-
-        showQuickJumper
-        :show-total="(total, range) => `共 ${total} 条`"
-      />
-    </div>
-  </a-spin>
-</div>
-</div>
-
-  </div>
-</div>
 
 </template>
 
 <script setup lang="ts">
 import { createBlogArticleUsingPost, deleteArticleByIdUsingPost, queryBlogArticleTitleUsingPost, queryCategoryDataUsingPost, queryTagDataUsingPost, uploadUsingPost } from '@/api/blogArticleController'
-import { message } from 'ant-design-vue'
+import { message, Modal  } from 'ant-design-vue'
 import { log } from 'console'
 import { nextTick, onMounted, reactive, ref, h } from 'vue'
 
@@ -107,7 +98,7 @@ const items = ref<MenuProps['items']>([
     label: h(RouterLink, { to: '/' }, () => '首页'),
     title: '首页',
   },
-    {
+  {
     key: '/blog/admin',
     label: h(RouterLink, { to: '/blog/admin' }, () => '管理'),
     title: '管理',
@@ -161,8 +152,8 @@ const fetchArticles = async () => {
     if (res.data.code === 0 && res.data.data) {
       articles.value = res.data.data.records || []
       pagination.total = res.data.data.total || 0
-      console.log('',res.data.data.records)
-      console.log('11111',articles.value)
+      console.log('', res.data.data.records)
+      console.log('11111', articles.value)
     } else {
       message.error('获取文章列表失败，' + res.data.message)
     }
@@ -216,7 +207,7 @@ const getCategoryOptions = async () => {
         label: data.name, // 使用分类名称作为显示文本
       }
     })
-        // 如果有已选中的分类，设置显示值
+    // 如果有已选中的分类，设置显示值
 
   } else {
     message.error('获取分类列表失败，' + res.data.message)
@@ -267,6 +258,32 @@ const handleDelete = async (id: number) => {
   }
 }
 
+// 删除确认弹窗
+const showDeleteConfirm = (id: number) => {
+  Modal.confirm({
+    title: '确认删除',
+    content: '确定要删除这篇文章吗？此操作不可恢复。',
+    okText: '确认',
+    cancelText: '取消',
+    okType: 'danger',
+    centered: true,
+    onOk: async () => {
+      try {
+        const res = await deleteArticleByIdUsingPost({ id })
+        if (res.data.code === 0) {
+          message.success('删除成功')
+          fetchArticles()
+        } else {
+          message.error('删除失败，' + res.data.message)
+        }
+      } catch (error) {
+        message.error('删除失败，请重试')
+      }
+    }
+  })
+}
+
+
 
 
 </script>
@@ -278,8 +295,24 @@ const handleDelete = async (id: number) => {
   padding: 20px;
   background: #fff;
   border-radius: 8px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  min-height: calc(100vh - 40px);  /* 设置最小高度为视口高度减去上下边距 */
 }
+
+.content {
+  min-height: calc(100vh - 200px);  /* 内容区域的最小高度，减去头部高度和边距 */
+  display: flex;
+  flex-direction: column;
+}
+
+.article-list {
+  margin-top: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;  /* 让文章列表占据剩余空间 */
+}
+
 
 .header-menu {
   display: flex;
@@ -374,7 +407,8 @@ const handleDelete = async (id: number) => {
 .article-list :deep(.ant-list-item) {
   padding: 24px;
   margin-bottom: 16px;
-  border: 1px solid transparent; /* 修改为透明边框 */
+  border: 1px solid transparent;
+  /* 修改为透明边框 */
   border-radius: 8px;
   background: #fff;
   transition: all 0.3s;
@@ -382,7 +416,7 @@ const handleDelete = async (id: number) => {
 
 
 .article-list :deep(.ant-list-item:hover) {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   transform: translateY(-2px);
 }
 
@@ -420,7 +454,8 @@ const handleDelete = async (id: number) => {
 }
 
 .article-meta span:last-child {
-  margin-left: auto; /* 添加这行 */
+  margin-left: auto;
+  /* 添加这行 */
 }
 
 .article-meta span::before {
@@ -443,15 +478,18 @@ const handleDelete = async (id: number) => {
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   min-height: 84px;
-  max-height: 84px; /* 添加最大高度限制 */
-  position: relative; /* 添加相对定位 */
+  max-height: 84px;
+  /* 添加最大高度限制 */
+  position: relative;
+  /* 添加相对定位 */
 }
 
 .article-content :deep(img) {
   max-width: 100%;
   height: auto;
   border-radius: 4px;
-  display: none; /* 隐藏图片以保持等高 */
+  display: none;
+  /* 隐藏图片以保持等高 */
 }
 
 .article-content :deep(p) {
@@ -460,6 +498,16 @@ const handleDelete = async (id: number) => {
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
   overflow: hidden;
+}
+
+.article-item {
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.article-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .pagination-container {
@@ -531,20 +579,45 @@ const handleDelete = async (id: number) => {
 .article-actions {
   margin-top: 16px;
   display: flex;
+  justify-content: space-between;
   gap: 12px;
 }
 
 .article-actions .ant-btn {
+  flex: 1;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
   border-radius: 4px;
   transition: all 0.3s;
+  height: 36px;
+  opacity: 1;
+  color: #fff;
+  font-weight: 500;
 }
 
 .article-actions .ant-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.edit-btn {
+  background: linear-gradient(45deg, #69c0ff, #95de64);
+  border: none;
+}
+
+.edit-btn:hover {
+  background: linear-gradient(45deg, #91d5ff, #b7eb8f);
+}
+
+.delete-btn {
+  background: linear-gradient(45deg, #ff9c9e, #ffa39e);
+  border: none;
+}
+
+.delete-btn:hover {
+  background: linear-gradient(45deg, #ffb3b3, #ffc9c9);
 }
 
 

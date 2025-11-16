@@ -200,6 +200,20 @@ onMounted(() => {
   background: #fff;
   border-radius: 8px;
   box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+  min-height: calc(100vh - 40px);  /* 设置最小高度为视口高度减去上下边距 */
+}
+
+.content {
+  min-height: calc(100vh - 200px);  /* 内容区域的最小高度，减去头部高度和边距 */
+  display: flex;
+  flex-direction: column;
+}
+
+.article-detail {
+  padding: 24px;
+  background: #fff;
+  border-radius: 8px;
+  flex: 1;  /* 让内容区域占据剩余空间 */
 }
 
 .header-menu {

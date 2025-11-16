@@ -25,6 +25,21 @@ export async function createBlogArticleUsingPost(
   })
 }
 
+/** createBlogMessage POST /api/blog/article/create/message */
+export async function createBlogMessageUsingPost(
+  body: API.BlogMessage,
+  options?: { [key: string]: any }
+) {
+  return request<API.BaseResponseString_>('/api/blog/article/create/message', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: body,
+    ...(options || {}),
+  })
+}
+
 /** deleteArticleById POST /api/blog/article/delete/${param0} */
 export async function deleteArticleByIdUsingPost(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
@@ -63,6 +78,21 @@ export async function queryArticleIdByDetailUsingPost(
   return request<API.BaseResponseBlogArticle_>(`/api/blog/article/query/${param0}`, {
     method: 'POST',
     params: { ...queryParams },
+    ...(options || {}),
+  })
+}
+
+/** queryBlogMessage POST /api/blog/article/query/message */
+export async function queryBlogMessageUsingPost(
+  body: API.BlogMessage,
+  options?: { [key: string]: any }
+) {
+  return request<API.BaseResponseListBlogMessage_>('/api/blog/article/query/message', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    data: body,
     ...(options || {}),
   })
 }

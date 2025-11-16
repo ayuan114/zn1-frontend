@@ -1,97 +1,66 @@
 <template>
   <div id="BlogEidt">
     <div>
-<div class="header-menu">
-  <RouterLink to="/" class="title-bar">
-    <div class="title-container">
-      <div class="title">JI'S BLOG</div>
-      <div class="subtitle">热衷于编程，做饭，收集，游戏，动漫</div>
-    </div>
-  </RouterLink>
-  <div class="menu-container">
-    <a-menu
-      v-model:selectedKeys="current"
-      mode="horizontal"
-      :items="items"
-      @click="doMenuClick"
-    />
-  </div>
-</div>
+      <div class="header-menu">
+        <RouterLink to="/" class="title-bar">
+          <div class="title-container">
+            <div class="title">JI'S BLOG</div>
+            <div class="subtitle">热衷于编程，做饭，收集，游戏，动漫</div>
+          </div>
+        </RouterLink>
+        <div class="menu-container">
+          <a-menu v-model:selectedKeys="current" mode="horizontal" :items="items" @click="doMenuClick" />
+        </div>
+      </div>
 
 
- <a-form
-    layout="vertical"
-    :model="blogArticleForm"
-    @finish="handleSubmit"
-  >
+      <a-form layout="vertical" :model="blogArticleForm" @finish="handleSubmit">
         <a-form-item label="标题" name="title" :rules="[{ required: true, message: '请输入文章标题' }]">
-         <a-input v-model:value="blogArticleForm.title" placeholder="请输入标题" />
+          <a-input v-model:value="blogArticleForm.title" placeholder="请输入标题" />
         </a-form-item>
         <a-form-item label="内容" name="content">
-          <quill-editor
-            ref="editorRef"
-            v-model:content="blogArticleForm.content"
-            :options="options"
-            contentType="html"
-            style="height: 400px"
-            allowClear
-          ></quill-editor>
+          <quill-editor ref="editorRef" v-model:content="blogArticleForm.content" :options="options" contentType="html"
+            style="height: 400px" allowClear></quill-editor>
         </a-form-item>
-        <a-form-item label="分类" name="category_id">
-        <a-auto-complete
-  v-model:value="categoryDisplayValue"
-  :options="categoryOptions"
-  placeholder="请输入分类"
-  allowClear
-  @select="handleCategorySelect"
-/>
+        <a-form-item label="分类" name="categoryId">
+          <a-auto-complete v-model:value="categoryDisplayValue" :options="categoryOptions" placeholder="请输入分类"
+            allowClear @select="handleCategorySelect" />
 
 
         </a-form-item>
         <a-form-item label="标签" name="tags">
-          <a-select
-            v-model:value="blogArticleForm.tags"
-            :options="tagOptions"
-            mode="tags"
-            placeholder="请输入标签"
-            allowClear
-          />
+          <a-select v-model:value="blogArticleForm.tags" :options="tagOptions" mode="tags" placeholder="请输入标签"
+            allowClear />
         </a-form-item>
 
-              <!-- ... 其他代码 ... -->
-    <a-form-item>
-      <a-space style="width: 100%; display: flex; justify-content: center;">
-        <a-button type="primary" html-type="submit">
-  {{ isEdit ? '更新文章' : '创建文章' }}
-</a-button>
+        <!-- ... 其他代码 ... -->
+        <a-form-item>
+          <a-space style="width: 100%; display: flex; justify-content: center;">
+            <a-button type="primary" html-type="submit">
+              {{ isEdit ? '更新文章' : '创建文章' }}
+            </a-button>
 
-        <a-button @click="showPreview">预览</a-button>
-      </a-space>
-    </a-form-item>
+            <a-button @click="showPreview">预览</a-button>
+          </a-space>
+        </a-form-item>
       </a-form>
 
 
-
-    <!-- 预览模态框 -->
-<a-modal
-  v-model:open="previewVisible"
-  title="文章预览"
-  width="80%"
-  :footer="null"
->
-  <div class="preview-content">
-    <h1>{{ blogArticleForm.title }}</h1>
-    <div class="meta-info">
-      <span v-if="blogArticleForm.category_id">
-        分类：{{ getCategoryName(blogArticleForm.category_id) }}
-      </span>
-      <span v-if="blogArticleForm.tags">
-        标签：{{ getTagNames(blogArticleForm.tags) }}
-      </span>
-    </div>
-    <div class="article-content" v-html="blogArticleForm.content"></div>
-  </div>
-</a-modal>
+      <!-- 预览模态框 -->
+      <a-modal v-model:open="previewVisible" title="文章预览" width="80%" :footer="null">
+        <div class="preview-content">
+          <h1>{{ blogArticleForm.title }}</h1>
+          <div class="meta-info">
+            <span v-if="blogArticleForm.categoryId">
+              分类：{{ getCategoryName(blogArticleForm.categoryId) }}
+            </span>
+            <span v-if="blogArticleForm.tags">
+              标签：{{ getTagNames(blogArticleForm.tags) }}
+            </span>
+          </div>
+          <div class="article-content" v-html="blogArticleForm.content"></div>
+        </div>
+      </a-modal>
     </div>
   </div>
 </template>
@@ -179,11 +148,11 @@ const categoryDisplayValue = ref<string>('')
 
 // 处理分类选择
 const handleCategorySelect = (value: string, option: any) => {
-   console.log(option,'qqqq')
-  blogArticleForm.category_id = option.value  // 存储分类ID
-  console.log(blogArticleForm,'qqqq1')
+  console.log(option, 'qqqq')
+  blogArticleForm.categoryId = option.value  // 存储分类ID
+  console.log(blogArticleForm, 'qqqq1')
   categoryDisplayValue.value = option.label   // 显示分类名称
-  console.log(categoryDisplayValue,'qqqq2')
+  console.log(categoryDisplayValue, 'qqqq2')
 }
 
 
@@ -198,7 +167,7 @@ const getCategoryOptions = async () => {
         label: data.name, // 使用分类名称作为显示文本
       }
     })
-        // 如果有已选中的分类，设置显示值
+    // 如果有已选中的分类，设置显示值
 
   } else {
     message.error('获取分类列表失败，' + res.data.message)
@@ -295,7 +264,7 @@ const options = ref({
         ['link', 'image', 'video'], // 链接、图片、视频
       ],
       handlers: {
-        image: function() {
+        image: function () {
           const input = document.createElement('input')
           input.setAttribute('type', 'file')
           input.setAttribute('accept', 'image/*')
@@ -389,7 +358,7 @@ const initTitle = () => {
     }
   }, 100)
 }
-console.log(blogArticleForm,'qqqq1')
+console.log(blogArticleForm, 'qqqq1')
 
 // 在 BlogEdit.vue 中添加
 const handleSubmit = async (values: API.BlogArticleDTO) => {
@@ -403,7 +372,7 @@ const handleSubmit = async (values: API.BlogArticleDTO) => {
       message.error('请输入文章内容')
       return
     }
-    if (!values.category_id) {
+    if (!values.categoryId) {
       message.error('请输入文章分类')
       return
     }
@@ -495,7 +464,7 @@ const fetchArticleDetail = async () => {
       const article = res.data.data
       blogArticleForm.title = article.title
       blogArticleForm.content = article.content
-      blogArticleForm.category_id = article.categoryId
+      blogArticleForm.categoryId = article.categoryId
 
       // 处理标签：将id转换为对应的name
       if (article.tags) {
@@ -522,12 +491,14 @@ const fetchArticleDetail = async () => {
 
 <style scoped>
 #BlogEidt {
-  width: 900px;  /* 增加宽度 */
-  margin: 20px auto;  /* 增加上下边距 */
+  width: 900px;
+  /* 增加宽度 */
+  margin: 20px auto;
+  /* 增加上下边距 */
   padding: 20px;
   background: #fff;
   border-radius: 8px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
 }
 
 .header-menu {
@@ -638,6 +609,7 @@ const fetchArticleDetail = async () => {
   padding: 30px;
   background: #fff;
   border-radius: 8px;
+  min-height: 200px;
 }
 
 .preview-content h1 {
@@ -675,7 +647,7 @@ const fetchArticleDetail = async () => {
   margin: 8px;
   vertical-align: top;
   border-radius: 4px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s ease;
 }
 
@@ -739,5 +711,4 @@ const fetchArticleDetail = async () => {
   font-size: 18px;
   font-weight: 600;
 }
-
 </style>

@@ -1,73 +1,56 @@
 <template>
-<div id="HomePage">
-  <div>
-    <div class="header-menu">
-  <RouterLink to="/" class="title-bar">
-    <div class="title-container">
-      <div class="title">JI'S BLOG</div>
-      <div class="subtitle">热衷于编程，做饭，收集，游戏，动漫</div>
+  <div id="HomePage">
+    <div>
+      <div class="header-menu">
+        <RouterLink to="/" class="title-bar">
+          <div class="title-container">
+            <div class="title">JI'S BLOG</div>
+            <div class="subtitle">热衷于编程，做饭，收集，游戏，动漫</div>
+          </div>
+        </RouterLink>
+        <div class="menu-container">
+          <a-menu v-model:selectedKeys="current" mode="horizontal" :items="items" @click="doMenuClick" />
+        </div>
+      </div>
+      <div class="content">
+
+        <div class="article-list">
+          <a-spin :spinning="loading">
+            <a-list item-layout="vertical" size="large" :data-source="articles">
+              <template #renderItem="{ item }">
+                <a-list-item key="item.id" class="article-item"
+                  @click="() => router.push(`/blog/detail?id=${item.id}`)">
+                  <a-list-item-meta>
+                    <template #title>
+                      <RouterLink :to="`/blog/detail?id=${item.id}`" @click.stop>
+                        {{ item.title }}
+                      </RouterLink>
+                    </template>
+
+                    <template #description>
+                      <span class="article-meta">
+                        <span v-if="item.categoryId">分类：{{ getCategoryName(item.categoryId) }}</span>
+                        <span v-if="item.tags">标签：{{ getTagNames(item.tags) }}</span>
+                        <span> {{ formatDate(item.createTime) }}</span>
+                      </span>
+                    </template>
+
+                  </a-list-item-meta>
+                  <div class="article-content" v-html="item.content"></div>
+                </a-list-item>
+              </template>
+            </a-list>
+            <div class="pagination-container">
+              <a-pagination v-model:current="pagination.current" :total="pagination.total"
+                :pageSize="pagination.pageSize" @change="pagination.onChange" showQuickJumper
+                :show-total="(total, range) => `共 ${total} 条`" />
+            </div>
+          </a-spin>
+        </div>
+      </div>
+
     </div>
-  </RouterLink>
-  <div class="menu-container">
-    <a-menu
-      v-model:selectedKeys="current"
-      mode="horizontal"
-      :items="items"
-      @click="doMenuClick"
-    />
   </div>
-    </div>
-<div class="content">
-
-<div class="article-list">
-  <a-spin :spinning="loading">
-    <a-list
-      item-layout="vertical"
-      size="large"
-      :data-source="articles"
-    >
-        <template #renderItem="{ item }">
-          <a-list-item key="item.id">
-            <a-list-item-meta>
-<template #title>
-  <RouterLink :to="`/blog/detail?id=${item.id}`">
-    {{ item.title }}
-  </RouterLink>
-</template>
-
-
-
-
-<template #description>
-  <span class="article-meta">
-    <span v-if="item.categoryId">分类：{{ getCategoryName(item.categoryId) }}</span>
-    <span v-if="item.tags">标签：{{ getTagNames(item.tags) }}</span>
-    <span> {{ formatDate(item.createTime) }}</span>
-  </span>
-</template>
-
-            </a-list-item-meta>
-            <div class="article-content" v-html="item.content"></div>
-          </a-list-item>
-        </template>
-      </a-list>
-    <div class="pagination-container">
-      <a-pagination
-        v-model:current="pagination.current"
-        :total="pagination.total"
-        :pageSize="pagination.pageSize"
-        @change="pagination.onChange"
-
-        showQuickJumper
-        :show-total="(total, range) => `共 ${total} 条`"
-      />
-    </div>
-  </a-spin>
-</div>
-</div>
-
-  </div>
-</div>
 
 </template>
 
@@ -99,7 +82,7 @@ const items = ref<MenuProps['items']>([
     label: h(RouterLink, { to: '/blog/message/' }, () => '留言'),
     title: '留言',
   },
-    {
+  {
     key: '/blog/about/',
     label: h(RouterLink, { to: '/blog/about/' }, () => '关于'),
     title: '关于',
@@ -153,8 +136,8 @@ const fetchArticles = async () => {
     if (res.data.code === 0 && res.data.data) {
       articles.value = res.data.data.records || []
       pagination.total = res.data.data.total || 0
-      console.log('',res.data.data.records)
-      console.log('11111',articles.value)
+      console.log('', res.data.data.records)
+      console.log('11111', articles.value)
     } else {
       message.error('获取文章列表失败，' + res.data.message)
     }
@@ -208,7 +191,7 @@ const getCategoryOptions = async () => {
         label: data.name, // 使用分类名称作为显示文本
       }
     })
-        // 如果有已选中的分类，设置显示值
+    // 如果有已选中的分类，设置显示值
 
   } else {
     message.error('获取分类列表失败，' + res.data.message)
@@ -246,7 +229,14 @@ onMounted(() => {
   padding: 20px;
   background: #fff;
   border-radius: 8px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  min-height: calc(100vh - 40px);  /* 设置最小高度为视口高度减去上下边距 */
+}
+
+.content {
+  min-height: calc(100vh - 200px);  /* 内容区域的最小高度，减去头部高度和边距 */
+  display: flex;
+  flex-direction: column;
 }
 
 .header-menu {
@@ -338,19 +328,18 @@ onMounted(() => {
   gap: 16px;
 }
 
-
 .article-list :deep(.ant-list-item) {
   padding: 24px;
   margin-bottom: 16px;
-  border: 1px solid transparent; /* 修改为透明边框 */
+  border: 1px solid transparent;
+  /* 修改为透明边框 */
   border-radius: 8px;
   background: #fff;
   transition: all 0.3s;
 }
 
-
 .article-list :deep(.ant-list-item:hover) {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   transform: translateY(-2px);
 }
 
@@ -388,7 +377,8 @@ onMounted(() => {
 }
 
 .article-meta span:last-child {
-  margin-left: auto; /* 添加这行 */
+  margin-left: auto;
+  /* 添加这行 */
 }
 
 .article-meta span::before {
@@ -400,6 +390,15 @@ onMounted(() => {
   background: #1890ff;
 }
 
+.article-item {
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.article-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
 
 .article-content {
   color: #333;
@@ -411,15 +410,18 @@ onMounted(() => {
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   min-height: 84px;
-  max-height: 84px; /* 添加最大高度限制 */
-  position: relative; /* 添加相对定位 */
+  max-height: 84px;
+  /* 添加最大高度限制 */
+  position: relative;
+  /* 添加相对定位 */
 }
 
 .article-content :deep(img) {
   max-width: 100%;
   height: auto;
   border-radius: 4px;
-  display: none; /* 隐藏图片以保持等高 */
+  display: none;
+  /* 隐藏图片以保持等高 */
 }
 
 .article-content :deep(p) {
@@ -495,5 +497,4 @@ onMounted(() => {
 .pagination-container :deep(.ant-pagination-options-quick-jumper input) {
   border-radius: 4px;
 }
-
 </style>

@@ -11,6 +11,12 @@ declare namespace API {
     message?: string
   }
 
+  type BaseResponseListBlogMessage_ = {
+    code?: number
+    data?: BlogMessage[]
+    message?: string
+  }
+
   type BaseResponseListCategory_ = {
     code?: number
     data?: Category[]
@@ -49,7 +55,7 @@ declare namespace API {
 
   type BlogArticleDTO = {
     author_id?: number
-    category_id?: number
+    categoryId?: number
     content?: string
     current?: number
     id?: number
@@ -59,6 +65,14 @@ declare namespace API {
     status?: string
     tags?: string
     title?: string
+  }
+
+  type BlogMessage = {
+    content?: string
+    createTime?: string
+    email?: string
+    id?: number
+    name?: string
   }
 
   type Category = {

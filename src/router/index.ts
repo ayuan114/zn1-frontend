@@ -22,15 +22,20 @@ const router = createRouter({
       name: 'detail',
       component: () => import('@/pages/BlogEditDetail.vue'),
     },
-        {
+    {
       path: '/blog/admin/',
       name: 'admin',
       component: () => import('@/pages/AdminHomePage.vue'),
     },
-      {
+    {
       path: '/blog/message/',
       name: 'message',
       component: () => import('@/pages/BlogMessage.vue'),
+    },
+    {
+      path: '/blog/about/',
+      name: 'about',
+      component: () => import('@/pages/Blogabout.vue'),
     },
   ],
 })
