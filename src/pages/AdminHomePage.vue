@@ -84,7 +84,7 @@
 </template>
 
 <script setup lang="ts">
-import { createBlogArticleUsingPost, queryBlogArticleTitleUsingPost, queryCategoryDataUsingPost, queryTagDataUsingPost, uploadUsingPost } from '@/api/blogArticleController'
+import { createBlogArticleUsingPost, deleteArticleByIdUsingPost, queryBlogArticleTitleUsingPost, queryCategoryDataUsingPost, queryTagDataUsingPost, uploadUsingPost } from '@/api/blogArticleController'
 import { message } from 'ant-design-vue'
 import { log } from 'console'
 import { nextTick, onMounted, reactive, ref, h } from 'vue'
@@ -109,8 +109,8 @@ const items = ref<MenuProps['items']>([
   },
     {
     key: '/blog/admin',
-    label: h(RouterLink, { to: '/blog/admin' }, () => '管理员首页'),
-    title: '博客',
+    label: h(RouterLink, { to: '/blog/admin' }, () => '管理'),
+    title: '管理',
   },
   {
     key: '/blog/edit',
@@ -255,7 +255,7 @@ const handleEdit = (id: number) => {
 // 删除文章
 const handleDelete = async (id: number) => {
   try {
-    const res = await deleteBlogArticleUsingPost({ id })
+    const res = await deleteArticleByIdUsingPost({ id })
     if (res.data.code === 0) {
       message.success('删除成功')
       fetchArticles() // 重新获取文章列表

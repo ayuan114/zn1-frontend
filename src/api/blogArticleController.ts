@@ -25,6 +25,20 @@ export async function createBlogArticleUsingPost(
   })
 }
 
+/** deleteArticleById POST /api/blog/article/delete/${param0} */
+export async function deleteArticleByIdUsingPost(
+  // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)
+  params: API.deleteArticleByIdUsingPOSTParams,
+  options?: { [key: string]: any }
+) {
+  const { id: param0, ...queryParams } = params
+  return request<API.BaseResponseBoolean_>(`/api/blog/article/delete/${param0}`, {
+    method: 'POST',
+    params: { ...queryParams },
+    ...(options || {}),
+  })
+}
+
 /** download GET /api/blog/article/download/${param0} */
 export async function downloadUsingGet(
   // 叠加生成的Param类型 (非body参数swagger默认没有生成对象)

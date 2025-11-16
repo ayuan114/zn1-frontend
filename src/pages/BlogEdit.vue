@@ -121,6 +121,11 @@ const items = ref<MenuProps['items']>([
     title: '首页',
   },
   {
+    key: '/blog/admin',
+    label: h(RouterLink, { to: '/blog/admin' }, () => '管理'),
+    title: '管理',
+  },
+  {
     key: '/blog/edit',
     //icon: () => h(AppstoreOutlined),
     label: h(RouterLink, { to: '/blog/edit' }, () => '编辑'),
@@ -457,11 +462,13 @@ const isEdit = !!articleId  // 判断是否为编辑模式
 
 // 如果是编辑模式，获取文章详情
 onMounted(async () => {
+  // 先获取标签和分类选项
   await Promise.all([
     getCategoryOptions(),
     getTagOptions()
   ])
 
+  // 如果是编辑模式，再获取文章详情
   if (isEdit) {
     await fetchArticleDetail()
   }
@@ -477,6 +484,7 @@ onMounted(async () => {
 
 
 // 获取文章详情
+// 获取文章详情
 const fetchArticleDetail = async () => {
   if (!articleId) return
   try {
@@ -488,7 +496,18 @@ const fetchArticleDetail = async () => {
       blogArticleForm.title = article.title
       blogArticleForm.content = article.content
       blogArticleForm.category_id = article.categoryId
-      blogArticleForm.tags = article.tags ? article.tags.split(',') : []
+
+      // 处理标签：将id转换为对应的name
+      if (article.tags) {
+        const tagIds = article.tags.split(',')
+        blogArticleForm.tags = tagIds.map(id => {
+          const tag = tagOptions.value.find(t => t.value === Number(id))
+          return tag ? tag.label : ''
+        }).filter(name => name) // 过滤掉空值
+      } else {
+        blogArticleForm.tags = []
+      }
+
       categoryDisplayValue.value = getCategoryName(article.categoryId)
     } else {
       message.error('获取文章详情失败：' + res.data.message)
@@ -497,9 +516,6 @@ const fetchArticleDetail = async () => {
     message.error('获取文章详情失败，请重试')
   }
 }
-
-
-
 
 
 </script>

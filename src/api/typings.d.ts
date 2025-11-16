@@ -5,6 +5,12 @@ declare namespace API {
     message?: string
   }
 
+  type BaseResponseBoolean_ = {
+    code?: number
+    data?: boolean
+    message?: string
+  }
+
   type BaseResponseListCategory_ = {
     code?: number
     data?: Category[]
@@ -61,6 +67,11 @@ declare namespace API {
     name?: string
     parentId?: number
     sortOrder?: number
+  }
+
+  type deleteArticleByIdUsingPOSTParams = {
+    /** id */
+    id: number
   }
 
   type downloadUsingGETParams = {

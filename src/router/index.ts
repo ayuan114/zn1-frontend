@@ -27,6 +27,11 @@ const router = createRouter({
       name: 'admin',
       component: () => import('@/pages/AdminHomePage.vue'),
     },
+      {
+      path: '/blog/message/',
+      name: 'message',
+      component: () => import('@/pages/BlogMessage.vue'),
+    },
   ],
 })
 
