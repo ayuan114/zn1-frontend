@@ -1,40 +1,35 @@
 <template>
-<div id="BlogEditDetil">
-  <div>
-    <div class="header-menu">
-  <RouterLink to="/" class="title-bar">
-    <div class="title-container">
-      <div class="title">JI'S BLOG</div>
-      <div class="subtitle">热衷于编程，做饭，收集，游戏，动漫</div>
+  <div id="BlogEditDetil">
+    <div>
+      <div class="header-menu">
+        <RouterLink to="/" class="title-bar">
+          <div class="title-container">
+            <div class="title">JI'S BLOG</div>
+            <div class="subtitle">热衷于编程，做饭，收集，游戏，动漫</div>
+          </div>
+        </RouterLink>
+        <div class="menu-container">
+          <a-menu v-model:selectedKeys="current" mode="horizontal" :items="items" @click="doMenuClick" />
+        </div>
+      </div>
+      <div class="content">
+        <a-spin :spinning="loading">
+          <div v-if="articles" class="article-detail">
+            <h1 class="article-title">{{ articles.title }}</h1>
+            <div class="article-meta">
+              <span v-if="articles.categoryId">分类：{{ getCategoryName(articles.categoryId) }}</span>
+              <span v-if="articles.tags">标签：{{ getTagNames(articles.tags) }}</span>
+              <span class="create-time">{{ formatDate(articles.createTime) }}</span>
+            </div>
+
+            <div class="article-content" v-html="articles.content"></div>
+          </div>
+        </a-spin>
+      </div>
+
+
     </div>
-  </RouterLink>
-  <div class="menu-container">
-    <a-menu
-      v-model:selectedKeys="current"
-      mode="horizontal"
-      :items="items"
-      @click="doMenuClick"
-    />
   </div>
-    </div>
-<div class="content">
-  <a-spin :spinning="loading">
-    <div v-if="articles" class="article-detail">
-      <h1 class="article-title">{{ articles.title }}</h1>
-<div class="article-meta">
-  <span v-if="articles.categoryId">分类：{{ getCategoryName(articles.categoryId) }}</span>
-  <span v-if="articles.tags">标签：{{ getTagNames(articles.tags) }}</span>
-  <span class="create-time">{{ formatDate(articles.createTime) }}</span>
-</div>
-
-      <div class="article-content" v-html="articles.content"></div>
-    </div>
-  </a-spin>
-</div>
-
-
-  </div>
-</div>
 
 </template>
 
@@ -62,9 +57,14 @@ const items = ref<MenuProps['items']>([
     title: '首页',
   },
   {
-    key: '/blog/edit',
-    label: h(RouterLink, { to: '/blog/edit' }, () => '编辑'),
-    title: '博客',
+    key: '/blog/message/',
+    label: h(RouterLink, { to: '/blog/message/' }, () => '留言'),
+    title: '留言',
+  },
+  {
+    key: '/blog/about/',
+    label: h(RouterLink, { to: '/blog/about/' }, () => '关于'),
+    title: '关于',
   },
 ])
 
@@ -162,7 +162,7 @@ const getCategoryOptions = async () => {
         label: data.name, // 使用分类名称作为显示文本
       }
     })
-        // 如果有已选中的分类，设置显示值
+    // 如果有已选中的分类，设置显示值
 
   } else {
     message.error('获取分类列表失败，' + res.data.message)
@@ -199,12 +199,14 @@ onMounted(() => {
   padding: 20px;
   background: #fff;
   border-radius: 8px;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.1);
-  min-height: calc(100vh - 40px);  /* 设置最小高度为视口高度减去上下边距 */
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  min-height: calc(100vh - 40px);
+  /* 设置最小高度为视口高度减去上下边距 */
 }
 
 .content {
-  min-height: calc(100vh - 200px);  /* 内容区域的最小高度，减去头部高度和边距 */
+  min-height: calc(100vh - 200px);
+  /* 内容区域的最小高度，减去头部高度和边距 */
   display: flex;
   flex-direction: column;
 }
@@ -213,7 +215,8 @@ onMounted(() => {
   padding: 24px;
   background: #fff;
   border-radius: 8px;
-  flex: 1;  /* 让内容区域占据剩余空间 */
+  flex: 1;
+  /* 让内容区域占据剩余空间 */
 }
 
 .header-menu {
@@ -324,7 +327,8 @@ onMounted(() => {
   font-weight: 600;
   margin-bottom: 16px;
   color: #333;
-  text-align: center;  /* 添加这行实现标题居中 */
+  text-align: center;
+  /* 添加这行实现标题居中 */
 }
 
 .article-content {
@@ -337,9 +341,9 @@ onMounted(() => {
   max-width: 100%;
   height: auto;
   border-radius: 4px;
-  margin: 16px auto;  /* 修改这里，使用 auto 实现水平居中 */
-  display: block;     /* 添加这行，使 margin auto 生效 */
+  margin: 16px auto;
+  /* 修改这里，使用 auto 实现水平居中 */
+  display: block;
+  /* 添加这行，使 margin auto 生效 */
 }
-
-
 </style>

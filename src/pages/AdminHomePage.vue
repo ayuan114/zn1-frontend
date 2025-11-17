@@ -76,9 +76,9 @@
 
 <script setup lang="ts">
 import { createBlogArticleUsingPost, deleteArticleByIdUsingPost, queryBlogArticleTitleUsingPost, queryCategoryDataUsingPost, queryTagDataUsingPost, uploadUsingPost } from '@/api/blogArticleController'
-import { message, Modal  } from 'ant-design-vue'
+import { message, Modal } from 'ant-design-vue'
 import { log } from 'console'
-import { nextTick, onMounted, reactive, ref, h } from 'vue'
+import { nextTick, onMounted, reactive, ref, h, watch } from 'vue'
 
 // 引入富文本编辑器与样式
 import { Quill, QuillEditor } from '@vueup/vue-quill'
@@ -99,19 +99,30 @@ const items = ref<MenuProps['items']>([
     title: '首页',
   },
   {
-    key: '/blog/admin',
-    label: h(RouterLink, { to: '/blog/admin' }, () => '管理'),
+    key: '/admin/blog/manage',
+    label: h(RouterLink, { to: '/admin/blog/manage' }, () => '管理'),
     title: '管理',
   },
   {
-    key: '/blog/edit',
-    label: h(RouterLink, { to: '/blog/edit' }, () => '编辑'),
+    key: '/admin/blog/edit',
+    label: h(RouterLink, { to: '/admin/blog/edit' }, () => '编辑'),
     title: '博客',
+  },
+  {
+    key: '/blog/message/',
+    label: h(RouterLink, { to: '/blog/message/' }, () => '留言'),
+    title: '留言',
+  },
+  {
+    key: '/blog/about/',
+    label: h(RouterLink, { to: '/blog/about/' }, () => '关于'),
+    title: '关于',
   },
 ])
 
-import { RouterLink, useRouter } from 'vue-router'
+import { RouterLink, useRoute, useRouter } from 'vue-router'
 const router = useRouter()
+const route = useRoute()
 
 
 //路由跳转事件
@@ -121,8 +132,13 @@ const doMenuClick = ({ key }: { key: string }) => {
   })
 }
 
-//当前选中菜单
-const current = ref<string[]>(['/'])
+// 当前选中菜单
+const current = ref<string[]>([route.path])
+
+// 监听路由变化，更新菜单选中状态
+watch(() => route.path, (newPath) => {
+  current.value = [newPath]
+})
 
 
 
@@ -296,11 +312,13 @@ const showDeleteConfirm = (id: number) => {
   background: #fff;
   border-radius: 8px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-  min-height: calc(100vh - 40px);  /* 设置最小高度为视口高度减去上下边距 */
+  min-height: calc(100vh - 40px);
+  /* 设置最小高度为视口高度减去上下边距 */
 }
 
 .content {
-  min-height: calc(100vh - 200px);  /* 内容区域的最小高度，减去头部高度和边距 */
+  min-height: calc(100vh - 200px);
+  /* 内容区域的最小高度，减去头部高度和边距 */
   display: flex;
   flex-direction: column;
 }
@@ -310,7 +328,8 @@ const showDeleteConfirm = (id: number) => {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  flex: 1;  /* 让文章列表占据剩余空间 */
+  flex: 1;
+  /* 让文章列表占据剩余空间 */
 }
 
 
@@ -619,6 +638,4 @@ const showDeleteConfirm = (id: number) => {
 .delete-btn:hover {
   background: linear-gradient(45deg, #ffb3b3, #ffc9c9);
 }
-
-
 </style>

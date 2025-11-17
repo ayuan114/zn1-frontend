@@ -69,7 +69,7 @@
 import { createBlogArticleUsingPost, queryArticleIdByDetailUsingPost, queryCategoryDataUsingPost, queryTagDataUsingPost, uploadUsingPost } from '@/api/blogArticleController'
 import { message } from 'ant-design-vue'
 import { log } from 'console'
-import { nextTick, onMounted, reactive, ref, h } from 'vue'
+import { nextTick, onMounted, reactive, ref, h, watch } from 'vue'
 
 // 引入富文本编辑器与样式
 import { Quill, QuillEditor } from '@vueup/vue-quill'
@@ -85,25 +85,35 @@ import { MenuProps } from 'ant-design-vue'
 const items = ref<MenuProps['items']>([
   {
     key: '/',
-    //icon: () => h(MailOutlined),
     label: h(RouterLink, { to: '/' }, () => '首页'),
     title: '首页',
   },
   {
-    key: '/blog/admin',
-    label: h(RouterLink, { to: '/blog/admin' }, () => '管理'),
+    key: '/admin/blog/manage',
+    label: h(RouterLink, { to: '/admin/blog/manage' }, () => '管理'),
     title: '管理',
   },
   {
-    key: '/blog/edit',
-    //icon: () => h(AppstoreOutlined),
-    label: h(RouterLink, { to: '/blog/edit' }, () => '编辑'),
+    key: '/admin/blog/edit',
+    label: h(RouterLink, { to: '/admin/blog/edit' }, () => '编辑'),
     title: '博客',
+  },
+  {
+    key: '/blog/message/',
+    label: h(RouterLink, { to: '/blog/message/' }, () => '留言'),
+    title: '留言',
+  },
+  {
+    key: '/blog/about/',
+    label: h(RouterLink, { to: '/blog/about/' }, () => '关于'),
+    title: '关于',
   },
 ])
 
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 const router = useRouter()
+const route = useRoute()
+
 
 //路由跳转事件
 const doMenuClick = ({ key }: { key: string }) => {
@@ -114,7 +124,13 @@ const doMenuClick = ({ key }: { key: string }) => {
 
 
 //当前选中菜单
-const current = ref<string[]>(['/blog/edit'])
+// 当前选中菜单
+const current = ref<string[]>([route.path])
+
+// 监听路由变化，更新菜单选中状态
+watch(() => route.path, (newPath) => {
+  current.value = [newPath]
+})
 
 
 const blogArticle = ref<API.BlogArticle>()
@@ -425,7 +441,6 @@ const showPreview = () => {
 }
 
 // 获取路由参数中的文章id
-const route = useRoute()
 const articleId = route.query.id as string
 const isEdit = !!articleId  // 判断是否为编辑模式
 
@@ -453,7 +468,6 @@ onMounted(async () => {
 
 
 // 获取文章详情
-// 获取文章详情
 const fetchArticleDetail = async () => {
   if (!articleId) return
   try {
@@ -466,13 +480,10 @@ const fetchArticleDetail = async () => {
       blogArticleForm.content = article.content
       blogArticleForm.categoryId = article.categoryId
 
-      // 处理标签：将id转换为对应的name
+      // 修改标签处理逻辑
       if (article.tags) {
-        const tagIds = article.tags.split(',')
-        blogArticleForm.tags = tagIds.map(id => {
-          const tag = tagOptions.value.find(t => t.value === Number(id))
-          return tag ? tag.label : ''
-        }).filter(name => name) // 过滤掉空值
+        // 将标签字符串转换为数字数组
+        blogArticleForm.tags = article.tags.split(',').map(id => Number(id))
       } else {
         blogArticleForm.tags = []
       }
@@ -597,6 +608,20 @@ const fetchArticleDetail = async () => {
 :deep(.ant-input) {
   border-radius: 6px;
   padding: 8px 12px;
+  border-color: #d9d9d9;
+  /* 添加浅灰色边框 */
+}
+
+:deep(.ant-input:hover) {
+  border-color: #fff;
+  /* 悬停时保持浅灰色 */
+}
+
+:deep(.ant-input:focus) {
+  border-color: #d9d9d9;
+  /* 聚焦时保持浅灰色 */
+  box-shadow: 0 0 0 2px rgba(217, 217, 217, 0.2);
+  /* 调整聚焦时的阴影颜色 */
 }
 
 :deep(.ant-btn) {
@@ -614,7 +639,7 @@ const fetchArticleDetail = async () => {
 
 .preview-content h1 {
   margin-bottom: 24px;
-  color: #1a1a1a;
+  color: #666;
   font-size: 28px;
   font-weight: 600;
   text-align: center;

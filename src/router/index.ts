@@ -10,7 +10,7 @@ const router = createRouter({
       component: HomePage,
     },
     {
-      path: '/blog/edit',
+      path: '/admin/blog/edit',
       name: 'edit',
       // route level code-splitting
       // this generates a separate chunk (About.[hash].js) for this route
@@ -23,7 +23,7 @@ const router = createRouter({
       component: () => import('@/pages/BlogEditDetail.vue'),
     },
     {
-      path: '/blog/admin/',
+      path: '/admin/blog/manage',
       name: 'admin',
       component: () => import('@/pages/AdminHomePage.vue'),
     },
@@ -35,7 +35,7 @@ const router = createRouter({
     {
       path: '/blog/about/',
       name: 'about',
-      component: () => import('@/pages/Blogabout.vue'),
+      component: () => import('@/pages/BlogAbout.vue'),
     },
   ],
 })

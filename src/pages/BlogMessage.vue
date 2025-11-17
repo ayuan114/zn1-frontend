@@ -12,58 +12,37 @@
           <a-menu v-model:selectedKeys="current" mode="horizontal" :items="items" @click="doMenuClick" />
         </div>
       </div>
-<div class="content">
-  <div class="message-welcome">
-    <h2>欢迎给我留言</h2>
-    <p>你的留言不会被公开</p>
-  </div>
+      <div class="content">
+        <div class="message-welcome">
+          <h2>欢迎给我留言</h2>
+          <p>你的留言不会被公开</p>
+        </div>
 
-  <a-spin :spinning="loading">
-    <a-form
-      :model="messageForm"
-      layout="vertical"
-      @finish="handleSubmit"
-      class="message-form"
-    >
-      <a-form-item
-        label="称呼"
-        name="name"
-        :rules="[{ required: true, message: '请输入您的称呼' }]"
-      >
-        <a-input v-model:value="messageForm.name" placeholder="请输入您的称呼" />
-      </a-form-item>
+        <a-spin :spinning="loading">
+          <a-form :model="messageForm" layout="vertical" @finish="handleSubmit" class="message-form">
+            <a-form-item label="称呼" name="name" :rules="[{ required: true, message: '请输入您的称呼' }]">
+              <a-input v-model:value="messageForm.name" placeholder="请输入您的称呼" />
+            </a-form-item>
 
-      <a-form-item
-        label="邮箱"
-        name="email"
-        :rules="[
-          { required: true, message: '请输入您的邮箱' },
-          { type: 'email', message: '请输入有效的邮箱地址' }
-        ]"
-      >
-        <a-input v-model:value="messageForm.email" placeholder="请输入您的邮箱" />
-      </a-form-item>
+            <a-form-item label="邮箱" name="email" :rules="[
+              { required: true, message: '请输入您的邮箱' },
+              { type: 'email', message: '请输入有效的邮箱地址' }
+            ]">
+              <a-input v-model:value="messageForm.email" placeholder="请输入您的邮箱" />
+            </a-form-item>
 
-      <a-form-item
-        label="留言"
-        name="content"
-        :rules="[{ required: true, message: '请输入留言内容' }]"
-      >
-        <a-textarea
-          v-model:value="messageForm.content"
-          placeholder="请输入您的留言"
-          :rows="4"
-        />
-      </a-form-item>
+            <a-form-item label="留言" name="content" :rules="[{ required: true, message: '请输入留言内容' }]">
+              <a-textarea v-model:value="messageForm.content" placeholder="请输入您的留言" :rows="4" />
+            </a-form-item>
 
-      <a-form-item>
-        <a-button type="primary" html-type="submit" block>
-          提交留言
-        </a-button>
-      </a-form-item>
-    </a-form>
-  </a-spin>
-</div>
+            <a-form-item>
+              <a-button type="primary" html-type="submit" block>
+                提交留言
+              </a-button>
+            </a-form-item>
+          </a-form>
+        </a-spin>
+      </div>
 
 
     </div>
@@ -75,7 +54,7 @@
 import { createBlogMessageUsingPost, queryArticleIdByDetailUsingPost, queryBlogArticleTitleUsingPost } from '@/api/blogArticleController'
 import { message } from 'ant-design-vue'
 import { log } from 'console'
-import { nextTick, onMounted, reactive, ref, h } from 'vue'
+import { nextTick, onMounted, reactive, ref, h, watch } from 'vue'
 
 // 引入富文本编辑器与样式
 import { Quill, QuillEditor } from '@vueup/vue-quill'
@@ -104,11 +83,6 @@ const items = ref<MenuProps['items']>([
     label: h(RouterLink, { to: '/blog/about/' }, () => '关于'),
     title: '关于',
   },
-  {
-    key: '/blog/edit',
-    label: h(RouterLink, { to: '/blog/edit' }, () => '编辑'),
-    title: '博客',
-  },
 ])
 
 import { useRoute, RouterLink } from 'vue-router'
@@ -124,7 +98,14 @@ const doMenuClick = ({ key }: { key: string }) => {
 }
 
 //当前选中菜单
-const current = ref<string[]>(['/'])
+// 当前选中菜单
+const current = ref<string[]>([route.path])
+
+// 监听路由变化，更新菜单选中状态
+watch(() => route.path, (newPath) => {
+  current.value = [newPath]
+})
+
 
 const loading = ref(false)
 
@@ -293,19 +274,28 @@ const handleSubmit = async (values: any) => {
   margin-bottom: 24px;
 }
 
+.message-form :deep(.ant-input),
+.message-form :deep(.ant-input:hover),
+.message-form :deep(.ant-input:focus) {
+  border-color: #e6f7ff;
+}
+
 .message-form :deep(.ant-input-textarea) {
   height: 500px !important;
   min-height: 500px !important;
   font-size: 16px;
   padding: 100px;
   resize: vertical;
+  background-color: #e6f7ff;
+  border-color: #e6f7ff;
 }
 
 .message-form :deep(.ant-input-textarea .ant-input) {
-  height: 500px !important;
+  height: 600px !important;
   min-height: 500px !important;
+  background-color: #e6f7ff;
+  border-color: #e6f7ff;
 }
-
 
 
 .message-form :deep(.ant-btn) {
@@ -313,7 +303,4 @@ const handleSubmit = async (values: any) => {
   border-radius: 6px;
   font-weight: 500;
 }
-
-
-
 </style>

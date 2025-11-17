@@ -9,35 +9,31 @@
         <div class="footer-content">
           <div class="footer-left">
             <div class="category-section">
-              <h4>分类 <span class="count">({{ categories.length }})</span></h4>
+              <h4 class="category-title">分类</h4>
               <div class="category-list">
                 <div v-for="category in categories" :key="category.value"
                   :class="['category-item', { active: blogArticleForm.categoryId === category.value }]"
                   @click="handleCategoryClick(category.value)">
-                  <span class="category-name">{{ category.label }}</span>
+                  <span class="category-name">-- {{ category.label }}</span>
                   <span class="category-count">({{ category.count || 0 }})</span>
                 </div>
               </div>
             </div>
-<div class="search-section">
-  <a-input
-    v-model:value="blogArticleForm.title"
-    placeholder="搜索标题"
-    style="width: 200px"
-    @keydown.enter.prevent="handleSearch"
-  >
-    <template #suffix>
-      <search-outlined style="color: rgba(0, 0, 0, 0.45)" />
-    </template>
-  </a-input>
-</div>
 
+            <div class="search-section">
+              <a-input v-model:value="blogArticleForm.title" placeholder="搜索标题" style="width: 200px"
+                @keydown.enter.prevent="handleSearch">
+                <template #suffix>
+                  <search-outlined style="color: rgba(0, 0, 0, 0.45)" />
+                </template>
+              </a-input>
+            </div>
 
 
 
           </div>
           <div class="footer-right">
-            <h4>标签 <span class="count">({{ tags.length }})</span></h4>
+            <h4>标签 </h4>
             <div class="tag-list">
               <div v-for="tag in tags" :key="tag.value"
                 :class="['tag-item', { active: blogArticleForm.tags.includes(tag.value) }]"
@@ -51,9 +47,8 @@
 
 
 
-
         <div class="footer-bottom">
-          <a target="_blank">@2025 JI'S BLOG by JI </a>
+          <p target="_blank">@2025 JI'S BLOG BY JI </p>
         </div>
       </a-layout-footer>
     </a-layout>
@@ -83,16 +78,23 @@ const pagination = reactive({
 })
 
 
-// 获取分类数据
 // 修改获取分类数据
 const fetchCategories = async () => {
   try {
     const res = await queryCategoryDataUsingPost()
     if (res.data.code === 0 && res.data.data) {
-      categories.value = res.data.data.map(item => ({
-        value: item.id,
-        label: item.name,
-        count: item.articleCount || 0
+      categories.value = await Promise.all(res.data.data.map(async (item) => {
+        // 获取每个分类的文章数量
+        const countRes = await queryBlogArticleTitleUsingPost({
+          current: 1,
+          pageSize: 1,
+          categoryId: item.id
+        })
+        return {
+          value: item.id,
+          label: item.name,
+          count: countRes.data.data?.total || 0
+        }
       }))
     }
   } catch (error) {
@@ -100,21 +102,31 @@ const fetchCategories = async () => {
   }
 }
 
+
 // 修改获取标签数据
 const fetchTags = async () => {
   try {
     const res = await queryTagDataUsingPost()
     if (res.data.code === 0 && res.data.data) {
-      tags.value = res.data.data.map(item => ({
-        value: item.id,
-        label: item.name,
-        count: item.articleCount || 0
+      tags.value = await Promise.all(res.data.data.map(async (item) => {
+        // 获取每个标签的文章数量
+        const countRes = await queryBlogArticleTitleUsingPost({
+          current: 1,
+          pageSize: 1,
+          tags: item.id
+        })
+        return {
+          value: item.id,
+          label: item.name,
+          count: countRes.data.data?.total || 0
+        }
       }))
     }
   } catch (error) {
     console.error('获取标签数据失败:', error)
   }
 }
+
 
 
 // 修改 blogArticleForm 的结构
@@ -134,15 +146,13 @@ const handleSearch = () => {
     query.title = blogArticleForm.title
   }
 
-  // 更新路由参数
+  // 更新路由参数，确保跳转到首页
   router.push({
     path: '/',
     query
   })
-
-  // 立即触发文章列表更新
-  fetchArticles()
 }
+
 
 // 修改 fetchArticles 函数
 const fetchArticles = async () => {
@@ -183,44 +193,38 @@ const handleCategoryClick = (categoryId) => {
     query.categoryId = categoryId
   }
 
-  // 更新路由参数
+  // 更新路由参数，确保跳转到首页
   router.push({
     path: '/',
     query
   })
-
-  // 立即触发文章列表更新
-  fetchArticles()
 }
+
+
 // 修改处理标签点击
 const handleTagClick = (tagId) => {
   const query: any = {
     current: 1
   }
 
-  const index = blogArticleForm.tags.indexOf(tagId)
-  if (index > -1) {
-    blogArticleForm.tags.splice(index, 1)
-  } else {
-    blogArticleForm.tags.push(tagId)
-  }
+  // 直接设置选中的标签，而不是叠加
+  blogArticleForm.tags = blogArticleForm.tags[0] === tagId ? [] : [tagId]
 
   if (blogArticleForm.tags.length > 0) {
     query.tags = blogArticleForm.tags.join(',')
   }
 
-  // 更新路由参数
+  // 更新路由参数，确保跳转到首页
   router.push({
     path: '/',
     query
   })
-
-  // 立即触发文章列表更新
-  fetchArticles()
 }
 
+
+
 // 修改监听路由变化
-watch(() => route.query, (newQuery) => {
+watch(() => route.query, async (newQuery) => {
   // 重置表单
   blogArticleForm.title = newQuery.title || ''
   blogArticleForm.categoryId = newQuery.categoryId ? Number(newQuery.categoryId) : undefined
@@ -230,19 +234,21 @@ watch(() => route.query, (newQuery) => {
     pagination.current = Number(newQuery.current)
   }
 
+  // 重新获取分类和标签数据
+  await fetchCategories()
+  await fetchTags()
+
   // 触发文章列表更新
-  fetchArticles()
+  //fetchArticles()
 }, { immediate: true })
 
-// 监听路由变化
-watch(() => route.query, () => {
-  fetchArticles()
-}, { immediate: true })
-
+// 修改onMounted部分
 onMounted(() => {
   fetchCategories()
   fetchTags()
 })
+
+
 </script>
 
 <style scoped>
@@ -279,11 +285,20 @@ onMounted(() => {
 }
 
 .footer-content {
-  max-width: 1200px;
+  max-width: 1000px;
   margin: 0 auto;
   display: flex;
   justify-content: space-between;
   padding: 20px;
+  gap: 40px;
+  /* 添加间距 */
+}
+
+.footer-left,
+.footer-right {
+  flex: 1;
+  /* 让两侧等宽 */
+  text-align: left;
 }
 
 .search-section {
@@ -347,5 +362,48 @@ onMounted(() => {
   opacity: 0.8;
 }
 
+.category-section {
+  text-align: left;
+}
 
+.category-title {
+  margin-bottom: 12px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #333;
+}
+
+.category-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.category-item {
+  display: flex;
+  align-items: center;
+
+
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.category-name {
+  color: #666;
+  font-size: 14px;
+}
+
+.category-count {
+  color: #999;
+  font-size: 12px;
+}
+
+.category-item:hover .category-name {
+  color: #1890ff;
+}
+
+.category-item.active .category-name {
+  color: #1890ff;
+  font-weight: 500;
+}
 </style>

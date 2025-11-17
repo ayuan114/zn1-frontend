@@ -1,5 +1,5 @@
 <template>
-  <div id="BlogMessage">
+  <div id="BlogAbout">
     <div>
       <div class="header-menu">
         <RouterLink to="/" class="title-bar">
@@ -43,7 +43,7 @@
 
         <div class="gallery">
           <h3>个人图库</h3>
-          <a href="http://beer.jizy.top" target="_blank" class="gallery-link" >来杯尼格罗尼</a>
+          <a href="http://beer.jizy.top" target="_blank" class="gallery-link">来杯尼格罗尼</a>
         </div>
 
       </div>
@@ -56,7 +56,7 @@
 import { createBlogMessageUsingPost, queryArticleIdByDetailUsingPost, queryBlogArticleTitleUsingPost } from '@/api/blogArticleController'
 import { message } from 'ant-design-vue'
 import { log } from 'console'
-import { nextTick, onMounted, reactive, ref, h } from 'vue'
+import { nextTick, onMounted, reactive, ref, h, watch } from 'vue'
 
 // 引入富文本编辑器与样式
 import { Quill, QuillEditor } from '@vueup/vue-quill'
@@ -85,11 +85,6 @@ const items = ref<MenuProps['items']>([
     label: h(RouterLink, { to: '/blog/about/' }, () => '关于'),
     title: '关于',
   },
-  {
-    key: '/blog/edit',
-    label: h(RouterLink, { to: '/blog/edit' }, () => '编辑'),
-    title: '博客',
-  },
 ])
 
 import { useRoute, RouterLink } from 'vue-router'
@@ -105,7 +100,13 @@ const doMenuClick = ({ key }: { key: string }) => {
 }
 
 //当前选中菜单
-const current = ref<string[]>(['/'])
+// 当前选中菜单
+const current = ref<string[]>([route.path])
+
+// 监听路由变化，更新菜单选中状态
+watch(() => route.path, (newPath) => {
+  current.value = [newPath]
+})
 
 const loading = ref(false)
 
@@ -145,7 +146,7 @@ const handleSubmit = async (values: any) => {
 </script>
 
 <style scoped>
-#BlogMessage {
+#BlogAbout {
   width: 900px;
   margin: 20px auto;
   padding: 20px;

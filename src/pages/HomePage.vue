@@ -37,6 +37,7 @@
 
                   </a-list-item-meta>
                   <div class="article-content" v-html="item.content"></div>
+                  <p style="margin-top: 6px;">阅读全文 ></p>
                 </a-list-item>
               </template>
             </a-list>
@@ -58,7 +59,7 @@
 import { createBlogArticleUsingPost, queryBlogArticleTitleUsingPost, queryCategoryDataUsingPost, queryTagDataUsingPost, uploadUsingPost } from '@/api/blogArticleController'
 import { message } from 'ant-design-vue'
 import { log } from 'console'
-import { nextTick, onMounted, reactive, ref, h } from 'vue'
+import { nextTick, onMounted, reactive, ref, h, watch } from 'vue'
 
 // 引入富文本编辑器与样式
 import { Quill, QuillEditor } from '@vueup/vue-quill'
@@ -70,6 +71,8 @@ Quill.register('modules/blotFormatter', BlotFormatter)
 
 import { MailOutlined, AppstoreOutlined, SettingOutlined } from '@ant-design/icons-vue'
 import { MenuProps } from 'ant-design-vue'
+import { RouterLink, useRouter, useRoute } from 'vue-router'
+
 
 const items = ref<MenuProps['items']>([
   {
@@ -87,14 +90,9 @@ const items = ref<MenuProps['items']>([
     label: h(RouterLink, { to: '/blog/about/' }, () => '关于'),
     title: '关于',
   },
-  {
-    key: '/blog/edit',
-    label: h(RouterLink, { to: '/blog/edit' }, () => '编辑'),
-    title: '博客',
-  },
 ])
 
-import { RouterLink, useRouter } from 'vue-router'
+
 const router = useRouter()
 
 
@@ -108,22 +106,26 @@ const doMenuClick = ({ key }: { key: string }) => {
 //当前选中菜单
 const current = ref<string[]>(['/'])
 
-
-
 const articles = ref<API.BlogArticle[]>([])
 const loading = ref(false)
 
-
-
 const pagination = reactive({
   current: 1,
-  pageSize: 10,
+  pageSize: 4,
   total: 0,
   onChange: (page: number) => {
     pagination.current = page
     fetchArticles()
   }
 })
+
+// 添加查询参数的响应式变量
+const queryParams = reactive({
+  title: '',
+  tags: '',
+  categoryId: ''
+})
+
 
 // 修改 fetchArticles 函数
 const fetchArticles = async () => {
@@ -132,12 +134,13 @@ const fetchArticles = async () => {
     const res = await queryBlogArticleTitleUsingPost({
       current: pagination.current,
       pageSize: pagination.pageSize,
+      title: queryParams.title,
+      tags: queryParams.tags,
+      categoryId: queryParams.categoryId
     })
     if (res.data.code === 0 && res.data.data) {
       articles.value = res.data.data.records || []
       pagination.total = res.data.data.total || 0
-      console.log('', res.data.data.records)
-      console.log('11111', articles.value)
     } else {
       message.error('获取文章列表失败，' + res.data.message)
     }
@@ -211,13 +214,26 @@ const formatDate = (date: string) => {
   return `${year}-${month}-${day}`
 }
 
+const route = useRoute()
 
+// 监听路由变化
+watch(() => route.query, (newQuery) => {
+  queryParams.title = newQuery.title as string || ''
+  queryParams.tags = newQuery.tags as string || ''
+  queryParams.categoryId = newQuery.categoryId as string || ''
+
+  if (newQuery.current) {
+    pagination.current = Number(newQuery.current)
+  }
+
+  fetchArticles()
+}, { immediate: true })
 
 onMounted(() => {
-  fetchArticles();
-  getCategoryOptions();
-  getTagOptions();
+  getCategoryOptions()
+  getTagOptions()
 })
+
 
 
 </script>
@@ -230,11 +246,13 @@ onMounted(() => {
   background: #fff;
   border-radius: 8px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
-  min-height: calc(100vh - 40px);  /* 设置最小高度为视口高度减去上下边距 */
+  min-height: calc(100vh - 40px);
+  /* 设置最小高度为视口高度减去上下边距 */
 }
 
 .content {
-  min-height: calc(100vh - 200px);  /* 内容区域的最小高度，减去头部高度和边距 */
+  min-height: calc(100vh - 200px);
+  /* 内容区域的最小高度，减去头部高度和边距 */
   display: flex;
   flex-direction: column;
 }
@@ -397,7 +415,7 @@ onMounted(() => {
 
 .article-item:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .article-content {
