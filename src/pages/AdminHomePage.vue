@@ -151,6 +151,8 @@ const pagination = reactive({
   current: 1,
   pageSize: 10,
   total: 0,
+  createTime: 'create_time',
+  sortOrder: 'descend',
   onChange: (page: number) => {
     pagination.current = page
     fetchArticles()
@@ -164,6 +166,8 @@ const fetchArticles = async () => {
     const res = await queryBlogArticleTitleUsingPost({
       current: pagination.current,
       pageSize: pagination.pageSize,
+      sortField: pagination.createTime,  // 添加排序字段
+      sortOrder: pagination.sortOrder         // 添加排序方向（降序）
     })
     if (res.data.code === 0 && res.data.data) {
       articles.value = res.data.data.records || []
@@ -254,7 +258,7 @@ onMounted(() => {
 // 编辑文章
 const handleEdit = (id: number) => {
   router.push({
-    path: '/blog/edit',
+    path: '/admin/blog/edit',
     query: { id }
   })
 }

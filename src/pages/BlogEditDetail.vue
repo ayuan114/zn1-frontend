@@ -21,9 +21,24 @@
               <span v-if="articles.tags">标签：{{ getTagNames(articles.tags) }}</span>
               <span class="create-time">{{ formatDate(articles.createTime) }}</span>
             </div>
-
-            <div class="article-content" v-html="articles.content"></div>
+            <!-- 在文章内容div上添加点击事件监听 -->
+            <div class="article-content" v-html="articles.content" @click="handleImageClick"></div>
           </div>
+
+<!-- 修改图片预览模态框 -->
+<a-modal v-model:open="previewVisible" :footer="null" :width="800">
+  <div class="image-preview">
+    <a-button class="preview-btn prev" @click="handlePrev" v-if="imageList.length > 1">
+      <LeftOutlined />
+    </a-button>
+    <img :src="previewImage" style="width: 100%" />
+    <a-button class="preview-btn next" @click="handleNext" v-if="imageList.length > 1">
+      <RightOutlined />
+    </a-button>
+  </div>
+</a-modal>
+
+
         </a-spin>
       </div>
 
@@ -84,11 +99,8 @@ const doMenuClick = ({ key }: { key: string }) => {
 const current = ref<string[]>(['/'])
 
 
-
 const articles = ref<API.BlogArticle>()
 const loading = ref(false)
-articles.value?.id
-
 
 
 const pagination = reactive({
@@ -182,6 +194,43 @@ const formatDate = (date: string) => {
   return `${year}-${month}-${day}`
 }
 
+// 在 script setup 中添加图片预览相关的变量和方法
+const previewVisible = ref(false)
+const previewImage = ref('')
+const currentImageIndex = ref(0)
+const imageList = ref<string[]>([])
+
+// 添加图片点击处理方法
+const handleImageClick = (e: Event) => {
+  const target = e.target as HTMLImageElement
+  if (target.tagName === 'IMG') {
+    imageList.value = getImageList()
+    currentImageIndex.value = imageList.value.indexOf(target.src)
+    previewImage.value = target.src
+    previewVisible.value = true
+  }
+}
+
+// 获取文章中的所有图片
+const getImageList = () => {
+  if (!articles.value?.content) return []
+  const tempDiv = document.createElement('div')
+  tempDiv.innerHTML = articles.value.content
+  const images = tempDiv.getElementsByTagName('img')
+  return Array.from(images).map(img => img.src)
+}
+
+// 切换到上一张图片
+const handlePrev = () => {
+  currentImageIndex.value = (currentImageIndex.value - 1 + imageList.value.length) % imageList.value.length
+  previewImage.value = imageList.value[currentImageIndex.value]
+}
+
+// 切换到下一张图片
+const handleNext = () => {
+  currentImageIndex.value = (currentImageIndex.value + 1) % imageList.value.length
+  previewImage.value = imageList.value[currentImageIndex.value]
+}
 
 
 onMounted(() => {
@@ -338,12 +387,60 @@ onMounted(() => {
 }
 
 .article-content :deep(img) {
-  max-width: 100%;
+  max-width: 48%;
   height: auto;
   border-radius: 4px;
-  margin: 16px auto;
-  /* 修改这里，使用 auto 实现水平居中 */
-  display: block;
-  /* 添加这行，使 margin auto 生效 */
+  margin: 8px;
+  display: inline-block;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+  vertical-align: top;
 }
+
+.article-content :deep(img):hover {
+  transform: scale(1.02);
+}
+
+.image-preview {
+  position: relative;
+  width: 100%;
+}
+
+.preview-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  border: none;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.preview-btn:hover {
+  background: rgba(0, 0, 0, 0.7);
+  opacity: 1;
+  transform: translateY(-50%) scale(1.1);
+}
+
+.preview-btn.prev {
+  left: 20px;
+}
+
+.preview-btn.next {
+  right: 20px;
+}
+
+.preview-btn :deep(.anticon) {
+  font-size: 20px;
+}
+
 </style>

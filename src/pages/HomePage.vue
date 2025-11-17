@@ -37,7 +37,7 @@
 
                   </a-list-item-meta>
                   <div class="article-content" v-html="item.content"></div>
-                  <p style="margin-top: 6px;">阅读全文 ></p>
+                  <p style="margin-top: 20px;">阅读全文 ></p>
                 </a-list-item>
               </template>
             </a-list>
@@ -113,6 +113,8 @@ const pagination = reactive({
   current: 1,
   pageSize: 4,
   total: 0,
+  createTime: 'create_time',
+  sortOrder: 'descend',
   onChange: (page: number) => {
     pagination.current = page
     fetchArticles()
@@ -131,16 +133,20 @@ const queryParams = reactive({
 const fetchArticles = async () => {
   loading.value = true
   try {
+    console.log(queryParams, '22222')
     const res = await queryBlogArticleTitleUsingPost({
       current: pagination.current,
       pageSize: pagination.pageSize,
       title: queryParams.title,
       tags: queryParams.tags,
-      categoryId: queryParams.categoryId
+      categoryId: queryParams.categoryId,
+      sortField: pagination.createTime,  // 添加排序字段
+      sortOrder: pagination.sortOrder         // 添加排序方向（降序）
     })
     if (res.data.code === 0 && res.data.data) {
       articles.value = res.data.data.records || []
       pagination.total = res.data.data.total || 0
+      console.log(res.data.data.records, '11111')
     } else {
       message.error('获取文章列表失败，' + res.data.message)
     }
@@ -150,6 +156,7 @@ const fetchArticles = async () => {
     loading.value = false
   }
 }
+
 
 
 const categoryOptions = ref<API.Category[]>([])

@@ -57,6 +57,7 @@ declare namespace API {
     author_id?: number
     categoryId?: number
     content?: string
+    createTime?: string
     current?: number
     id?: number
     pageSize?: number
