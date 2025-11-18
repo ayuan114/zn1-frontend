@@ -560,7 +560,7 @@ onUnmounted(() => {
 /* 修改目录样式 */
 .catalog {
   position: fixed;
-  right: 20px;
+  right: calc(370px);  /* 向左移动370px */;
   top: 100px;
   width: 200px;
   background: rgba(255, 255, 255, 0.95);
