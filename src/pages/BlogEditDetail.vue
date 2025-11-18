@@ -12,8 +12,24 @@
           <a-menu v-model:selectedKeys="current" mode="horizontal" :items="items" @click="doMenuClick" />
         </div>
       </div>
+<!-- 修改目录列表的渲染 -->
+<!-- 修改目录列表的渲染，移除缩进 -->
+<div class="catalog" v-if="catalogList.length">
+  <h3>目录</h3>
+  <ul>
+    <li v-for="(item, index) in catalogList"
+        :key="index"
+        :data-level="item.level">
+      <a :href="`#${item.id}`" @click.prevent="scrollToHeading(item.id)">{{ item.text }}</a>
+    </li>
+  </ul>
+</div>
+
+
       <div class="content">
         <a-spin :spinning="loading">
+
+
           <div v-if="articles" class="article-detail">
             <h1 class="article-title">{{ articles.title }}</h1>
             <div class="article-meta">
@@ -25,18 +41,18 @@
             <div class="article-content" v-html="articles.content" @click="handleImageClick"></div>
           </div>
 
-<!-- 修改图片预览模态框 -->
-<a-modal v-model:open="previewVisible" :footer="null" :width="800">
-  <div class="image-preview">
-    <a-button class="preview-btn prev" @click="handlePrev" v-if="imageList.length > 1">
-      <LeftOutlined />
-    </a-button>
-    <img :src="previewImage" style="width: 100%" />
-    <a-button class="preview-btn next" @click="handleNext" v-if="imageList.length > 1">
-      <RightOutlined />
-    </a-button>
-  </div>
-</a-modal>
+          <!-- 修改图片预览模态框 -->
+          <a-modal v-model:open="previewVisible" :footer="null" :width="800">
+            <div class="image-preview">
+              <a-button class="preview-btn prev" @click="handlePrev" v-if="imageList.length > 1">
+                <LeftOutlined />
+              </a-button>
+              <img :src="previewImage" style="width: 100%" />
+              <a-button class="preview-btn next" @click="handleNext" v-if="imageList.length > 1">
+                <RightOutlined />
+              </a-button>
+            </div>
+          </a-modal>
 
 
         </a-spin>
@@ -52,7 +68,7 @@
 import { createBlogArticleUsingPost, queryArticleIdByDetailUsingPost, queryBlogArticleTitleUsingPost, queryCategoryDataUsingPost, queryTagDataUsingPost, uploadUsingPost } from '@/api/blogArticleController'
 import { message } from 'ant-design-vue'
 import { log } from 'console'
-import { nextTick, onMounted, reactive, ref, h } from 'vue'
+import { nextTick, onMounted, reactive, ref, h, onUnmounted } from 'vue'
 
 // 引入富文本编辑器与样式
 import { Quill, QuillEditor } from '@vueup/vue-quill'
@@ -113,7 +129,51 @@ const pagination = reactive({
   }
 })
 
-// 修改 fetchArticles 函数
+// 在script setup中添加目录相关的变量和方法
+const catalogList = ref<Array<{id: string, text: string, level: number}>>([])
+
+// 修改getCatalog方法，确保标题ID正确设置
+const getCatalog = () => {
+  if (!articles.value?.content) return
+  const tempDiv = document.createElement('div')
+  tempDiv.innerHTML = articles.value.content
+  const headings = tempDiv.querySelectorAll('h1, h2, h3, h4, h5, h6')
+
+  catalogList.value = Array.from(headings).map((heading, index) => {
+    const id = `heading-${index}`
+    heading.id = id
+    return {
+      id,
+      text: heading.textContent || '',
+      level: parseInt(heading.tagName.charAt(1))
+    }
+  })
+
+  // 更新实际文章内容中的标题ID
+  nextTick(() => {
+    const articleHeadings = document.querySelector('.article-content')?.querySelectorAll('h1, h2, h3, h4, h5, h6')
+    articleHeadings?.forEach((heading, index) => {
+      heading.id = `heading-${index}`
+    })
+  })
+}
+
+// 修改点击目录项的方法
+const scrollToHeading = (id: string) => {
+  const element = document.getElementById(id)
+  if (element) {
+    const headerOffset = 100 // 顶部偏移量
+    const elementPosition = element.getBoundingClientRect().top
+    const offsetPosition = elementPosition + window.pageYOffset - headerOffset
+
+    window.scrollTo({
+      top: offsetPosition,
+      behavior: 'smooth'
+    })
+  }
+}
+
+// 修改fetchArticles函数，在获取文章内容后调用getCatalog
 const fetchArticles = async () => {
   if (!articleId) return
   loading.value = true
@@ -123,6 +183,9 @@ const fetchArticles = async () => {
     })
     if (res.data.code === 0 && res.data.data) {
       articles.value = res.data.data
+      nextTick(() => {
+        getCatalog()
+      })
     }
   } catch (error) {
     message.error('获取文章详情失败')
@@ -130,6 +193,7 @@ const fetchArticles = async () => {
     loading.value = false
   }
 }
+
 
 
 const categoryOptions = ref<API.Category[]>([])
@@ -233,11 +297,60 @@ const handleNext = () => {
 }
 
 
+// 添加目录滚动监听
+const handleScroll = () => {
+  const catalog = document.querySelector('.catalog')
+  const headings = document.querySelectorAll('h1, h2, h3, h4, h5, h6')
+
+  // 获取当前滚动位置
+  const scrollPosition = window.scrollY + 150
+
+  // 找到当前可见的标题
+  let currentHeading = null
+  headings.forEach((heading, index) => {
+    const rect = heading.getBoundingClientRect()
+    const elementTop = rect.top + window.scrollY
+
+    if (elementTop <= scrollPosition) {
+      currentHeading = heading
+    }
+  })
+
+  // 更新目录项的激活状态
+  if (currentHeading) {
+    const links = catalog.querySelectorAll('a')
+    links.forEach(link => link.classList.remove('active'))
+
+    const currentIndex = Array.from(headings).indexOf(currentHeading)
+    const activeLink = catalog.querySelector(`a[href="#heading-${currentIndex}"]`)
+    if (activeLink) {
+      activeLink.classList.add('active')
+      // 确保激活的目录项在视口内
+      const linkRect = activeLink.getBoundingClientRect()
+      const catalogRect = catalog.getBoundingClientRect()
+
+      if (linkRect.bottom > catalogRect.bottom) {
+        activeLink.scrollIntoView({ behavior: 'smooth', block: 'end' })
+      } else if (linkRect.top < catalogRect.top) {
+        activeLink.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }
+    }
+  }
+}
+
+// 修改onMounted钩子
 onMounted(() => {
-  fetchArticles();
-  getCategoryOptions();
-  getTagOptions();
+  fetchArticles()
+  getCategoryOptions()
+  getTagOptions()
+  window.addEventListener('scroll', handleScroll)
 })
+
+// 在组件卸载时移除事件监听
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll)
+})
+
 
 </script>
 
@@ -442,5 +555,125 @@ onMounted(() => {
 .preview-btn :deep(.anticon) {
   font-size: 20px;
 }
+
+
+/* 修改目录样式 */
+.catalog {
+  position: fixed;
+  right: 20px;
+  top: 100px;
+  width: 200px;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 99;
+  max-height: calc(100vh - 140px);
+  overflow-y: auto;
+  border: 1px solid #f0f0f0;
+  backdrop-filter: blur(8px);
+}
+
+.catalog h3 {
+  margin-bottom: 12px;
+  font-size: 16px;
+  color: #333;
+  font-weight: 600;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #1890ff;
+  text-align: left;
+}
+
+.catalog ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  text-align: left;
+}
+
+.catalog li {
+  margin-bottom: 6px;
+  text-align: left;
+}
+
+.catalog a {
+  color: #000;
+  text-decoration: none;
+  font-size: 13px;
+  line-height: 1.6;
+  display: block;
+  padding: 6px 10px;
+  border-radius: 4px;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+  text-align: left;
+}
+
+/* 不同级别标题的字体粗细 */
+.catalog li[data-level="1"] a {
+  font-weight: 700;
+}
+
+.catalog li[data-level="2"] a {
+  font-weight: 600;
+}
+
+.catalog li[data-level="3"] a {
+  font-weight: 500;
+}
+
+.catalog li[data-level="4"] a {
+  font-weight: 400;
+}
+
+.catalog li[data-level="5"] a {
+  font-weight: 400;
+}
+
+.catalog li[data-level="6"] a {
+  font-weight: 400;
+}
+
+.catalog a:hover {
+  background: rgba(0, 0, 0, 0.05);
+  transform: translateX(-4px);
+}
+
+.catalog a.active {
+  background: rgba(24, 144, 255, 0.15);
+}
+
+.catalog a.active::before {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: #1890ff;
+  border-radius: 2px 0 0 2px;
+}
+
+/* 保持滚动条样式不变 */
+.catalog::-webkit-scrollbar {
+  width: 6px;
+}
+
+.catalog::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+
+.catalog::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.catalog::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+
+
 
 </style>
