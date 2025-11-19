@@ -1,60 +1,50 @@
 <template>
-  <div id="BlogMessage">
-    <div>
-      <div class="header-menu">
-        <RouterLink to="/" class="title-bar">
-          <div class="title-container">
-            <div class="title">JI'S BLOG</div>
-            <div class="subtitle">热衷于编程，做饭，收集，游戏，动漫</div>
-          </div>
-        </RouterLink>
-        <div class="menu-container">
-          <a-menu v-model:selectedKeys="current" mode="horizontal" :items="items" @click="doMenuClick" />
+  <div id="userRegisterPage">
+    <div class="header-menu">
+      <RouterLink to="/" class="title-bar">
+        <div class="title-container">
+          <div class="title">JI'S BLOG</div>
+          <div class="subtitle">热衷于编程，做饭，收集，游戏，动漫</div>
         </div>
+      </RouterLink>
+      <div class="menu-container">
+        <a-menu v-model:selectedKeys="current" mode="horizontal" :items="items" @click="doMenuClick" />
       </div>
-      <div class="content">
-        <div class="message-welcome">
-          <h2>欢迎给我留言</h2>
-          <p>你的留言不会被公开</p>
-        </div>
-
-        <a-spin :spinning="loading">
-          <a-form :model="messageForm" layout="vertical" @finish="handleSubmit" class="message-form">
-            <a-form-item label="称呼" name="name" :rules="[{ required: true, message: '请输入您的称呼' }]">
-              <a-input v-model:value="messageForm.name" placeholder="请输入您的称呼" />
-            </a-form-item>
-
-            <a-form-item label="邮箱" name="email" :rules="[
-              { required: true, message: '请输入您的邮箱' },
-              { type: 'email', message: '请输入有效的邮箱地址' }
-            ]">
-              <a-input v-model:value="messageForm.email" placeholder="请输入您的邮箱" />
-            </a-form-item>
-
-            <a-form-item label="留言" name="content" :rules="[{ required: true, message: '请输入留言内容' }]">
-              <a-textarea v-model:value="messageForm.content" placeholder="请输入您的留言" :rows="4" />
-            </a-form-item>
-
-            <a-form-item>
-              <a-button type="primary" html-type="submit" block>
-                提交留言
-              </a-button>
-            </a-form-item>
-          </a-form>
-        </a-spin>
-      </div>
-
-
     </div>
+    <div class="desc">个人博客网</div>
+    <a-form :model="formState" name="basic" label-align="left" autocomplete="off" @finish="handleSubmit"
+      class="message-form">
+      <a-form-item name="userAccount" :rules="[{ required: true, message: '请输入账号' }]">
+        <a-input v-model:value="formState.userAccount" placeholder="请输入账号" />
+      </a-form-item>
+      <a-form-item name="userPassword" :rules="[
+        { required: true, message: '请输入密码' },
+        { min: 4, message: '密码不能小于 4 位' },
+      ]">
+        <a-input-password v-model:value="formState.userPassword" placeholder="请输入密码" />
+      </a-form-item>
+      <a-form-item name="checkPassword" :rules="[
+        { required: true, message: '请输入确认密码' },
+        { min: 4, message: '确认密码不能小于 4 位' },
+      ]">
+        <a-input-password v-model:value="formState.checkPassword" placeholder="请输入确认密码" />
+      </a-form-item>
+      <div class="tips">
+        已有账号？
+        <RouterLink to="/login/user">去登录</RouterLink>
+      </div>
+      <a-form-item>
+        <a-button type="primary" html-type="submit" style="width: 100%">注册</a-button>
+      </a-form-item>
+    </a-form>
   </div>
-
 </template>
 
 <script setup lang="ts">
-import { createBlogMessageUsingPost, queryArticleIdByDetailUsingPost, queryBlogArticleTitleUsingPost } from '@/api/blogArticleController'
+import { createBlogArticleUsingPost, queryArticleIdByDetailUsingPost, queryBlogArticleTitleUsingPost, queryCategoryDataUsingPost, queryTagDataUsingPost, uploadUsingPost } from '@/api/blogArticleController'
 import { message } from 'ant-design-vue'
 import { log } from 'console'
-import { nextTick, onMounted, reactive, ref, h, watch, computed } from 'vue'
+import { nextTick, onMounted, reactive, ref, h, onUnmounted, computed } from 'vue'
 
 // 引入富文本编辑器与样式
 import { Quill, QuillEditor } from '@vueup/vue-quill'
@@ -72,6 +62,16 @@ const items1 = ref<MenuProps['items']>([
     key: '/',
     label: h(RouterLink, { to: '/' }, () => '首页'),
     title: '首页',
+  },
+  {
+    key: '/admin/blog/manage',
+    label: h(RouterLink, { to: '/admin/blog/manage' }, () => '管理'),
+    title: '管理',
+  },
+  {
+    key: '/user/blog/edit',
+    label: h(RouterLink, { to: '/user/blog/edit' }, () => '编辑'),
+    title: '博客',
   },
   {
     key: '/blog/message/',
@@ -137,7 +137,8 @@ const filterMenus = (menus = [] as MenuProps['items']) => {
 // 展示在菜单的路由数组
 const items = computed<MenuProps['items']>(() => filterMenus(originItems))
 
-import { useRoute, RouterLink } from 'vue-router'
+import { useRoute, RouterLink, useRouter } from 'vue-router'
+import { userLoginUsingPost, userRegisterUsingPost } from '@/api/userController'
 const route = useRoute()
 const articleId = route.query.id
 
@@ -150,54 +151,44 @@ const doMenuClick = ({ key }: { key: string }) => {
 }
 
 //当前选中菜单
-// 当前选中菜单
-const current = ref<string[]>([route.path])
+const current = ref<string[]>(['/'])
 
-// 监听路由变化，更新菜单选中状态
-watch(() => route.path, (newPath) => {
-  current.value = [newPath]
+const formState = reactive<API.UserRegisterRequest>({
+  userAccount: '',
+  userPassword: '',
 })
 
+const router = useRouter()
 
-const loading = ref(false)
 
-
-// 留言表单数据
-const messageForm = reactive({
-  name: '',
-  email: '',
-  content: ''
-})
-
-// 提交留言
+/**
+ * 提交表单
+ * @param values
+ */
 const handleSubmit = async (values: any) => {
-  loading.value = true
-  try {
-    const res = await createBlogMessageUsingPost({
-      name: values.name,
-      email: values.email,
-      content: values.content
+  // 判断两次输入的密码是否一致
+  if (formState.userPassword !== formState.checkPassword) {
+    message.error('二次输入的密码不一致')
+    return
+  }
+  const res = await userRegisterUsingPost(values)
+  // 注册成功，跳转到登录页面
+  if (res.data.code === 0 && res.data.data) {
+    message.success('注册成功')
+    router.push({
+      path: '/user/login',
+      replace: true,
     })
-
-    if (res.data.code === 0) {
-      message.success('留言提交成功')
-      // 重置表单
-      messageForm.name = ''
-      messageForm.email = ''
-      messageForm.content = ''
-    } else {
-      message.error('留言提交失败：' + res.data.message)
-    }
-  } catch (error) {
-    message.error('留言提交失败，请重试')
-  } finally {
-    loading.value = false
+  } else {
+    message.error('注册失败，' + res.data.message)
   }
 }
+
 </script>
 
+
 <style scoped>
-#BlogMessage {
+#userRegisterPage {
   width: 900px;
   margin: 20px auto;
   padding: 20px;
@@ -205,13 +196,22 @@ const handleSubmit = async (values: any) => {
   border-radius: 8px;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
   min-height: calc(100vh - 40px);
+  /* 设置最小高度为视口高度减去上下边距 */
 }
 
 .content {
   min-height: calc(100vh - 200px);
+  /* 内容区域的最小高度，减去头部高度和边距 */
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
+}
+
+.article-detail {
+  padding: 24px;
+  background: #fff;
+  border-radius: 8px;
+  flex: 1;
+  /* 让内容区域占据剩余空间 */
 }
 
 .header-menu {
@@ -278,7 +278,7 @@ const handleSubmit = async (values: any) => {
 :deep(.ant-menu-item) {
   font-size: 16px;
   font-weight: 500;
-  margin: 0 16px;
+  margin: 0 10px;
 }
 
 
@@ -296,22 +296,61 @@ const handleSubmit = async (values: any) => {
   }
 }
 
-.message-welcome {
+
+.desc {
+  margin-top: 50px;
   text-align: center;
-  margin-bottom: 32px;
+  color: #bbb;
+  margin-bottom: 16px;
+}
+
+.tips {
+  margin-bottom: 16px;
+  color: #bbb;
+  font-size: 13px;
+  text-align: right;
+}
+
+.message-form {
+  max-width: 600px;
+  margin: 0 auto;
   padding: 24px;
-  background: #f8f9fa;
+  background: #fff;
   border-radius: 8px;
 }
 
-.message-welcome h2 {
-  color: #333;
-  margin-bottom: 8px;
+.message-form :deep(.ant-form-item) {
+  margin-bottom: 24px;
 }
 
-.message-welcome p {
-  color: #666;
-  font-size: 14px;
+.message-form :deep(.ant-input),
+.message-form :deep(.ant-input:hover),
+.message-form :deep(.ant-input:focus) {
+  border-color: #e6f7ff;
+}
+
+.message-form :deep(.ant-input-textarea) {
+  height: 500px !important;
+  min-height: 500px !important;
+  font-size: 16px;
+  padding: 100px;
+  resize: vertical;
+  background-color: #e6f7ff;
+  border-color: #e6f7ff;
+}
+
+.message-form :deep(.ant-input-textarea .ant-input) {
+  height: 600px !important;
+  min-height: 500px !important;
+  background-color: #e6f7ff;
+  border-color: #e6f7ff;
+}
+
+
+.message-form :deep(.ant-btn) {
+  height: 40px;
+  border-radius: 6px;
+  font-weight: 500;
 }
 
 .message-form {

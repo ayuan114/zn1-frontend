@@ -12,18 +12,16 @@
           <a-menu v-model:selectedKeys="current" mode="horizontal" :items="items" @click="doMenuClick" />
         </div>
       </div>
-<!-- 修改目录列表的渲染 -->
-<!-- 修改目录列表的渲染，移除缩进 -->
-<div class="catalog" v-if="catalogList.length">
-  <h3>目录</h3>
-  <ul>
-    <li v-for="(item, index) in catalogList"
-        :key="index"
-        :data-level="item.level">
-      <a :href="`#${item.id}`" @click.prevent="scrollToHeading(item.id)">{{ item.text }}</a>
-    </li>
-  </ul>
-</div>
+      <!-- 修改目录列表的渲染 -->
+      <!-- 修改目录列表的渲染，移除缩进 -->
+      <div class="catalog" v-if="catalogList.length">
+        <h3>目录</h3>
+        <ul>
+          <li v-for="(item, index) in catalogList" :key="index" :data-level="item.level">
+            <a :href="`#${item.id}`" @click.prevent="scrollToHeading(item.id)">{{ item.text }}</a>
+          </li>
+        </ul>
+      </div>
 
 
       <div class="content">
@@ -68,7 +66,7 @@
 import { createBlogArticleUsingPost, queryArticleIdByDetailUsingPost, queryBlogArticleTitleUsingPost, queryCategoryDataUsingPost, queryTagDataUsingPost, uploadUsingPost } from '@/api/blogArticleController'
 import { message } from 'ant-design-vue'
 import { log } from 'console'
-import { nextTick, onMounted, reactive, ref, h, onUnmounted } from 'vue'
+import { nextTick, onMounted, reactive, ref, h, onUnmounted, computed } from 'vue'
 
 // 引入富文本编辑器与样式
 import { Quill, QuillEditor } from '@vueup/vue-quill'
@@ -81,7 +79,7 @@ Quill.register('modules/blotFormatter', BlotFormatter)
 import { MailOutlined, AppstoreOutlined, SettingOutlined } from '@ant-design/icons-vue'
 import { MenuProps } from 'ant-design-vue'
 
-const items = ref<MenuProps['items']>([
+const items1 = ref<MenuProps['items']>([
   {
     key: '/',
     label: h(RouterLink, { to: '/' }, () => '首页'),
@@ -98,6 +96,58 @@ const items = ref<MenuProps['items']>([
     title: '关于',
   },
 ])
+
+// 菜单列表
+const originItems = [
+  {
+    key: '/',
+    label: h(RouterLink, { to: '/' }, () => '首页'),
+    title: '首页',
+  },
+  {
+    key: '/admin/blog/manage',
+    label: h(RouterLink, { to: '/admin/blog/manage' }, () => '管理'),
+    title: '管理',
+  },
+  {
+    key: '/user/blog/edit',
+    label: h(RouterLink, { to: '/user/blog/edit' }, () => '编辑'),
+    title: '博客',
+  },
+  {
+    key: '/blog/message/',
+    label: h(RouterLink, { to: '/blog/message/' }, () => '留言'),
+    title: '留言',
+  },
+  {
+    key: '/blog/about/',
+    label: h(RouterLink, { to: '/blog/about/' }, () => '关于'),
+    title: '关于',
+  },
+]
+import { useLoginUserStore } from '@/stores/useLonginUserStore'
+
+const loginUserStore = useLoginUserStore()
+// 过滤菜单项
+const filterMenus = (menus = [] as MenuProps['items']) => {
+  return menus?.filter((menu) => {
+    if (menu.key.startsWith('/admin')) {
+      const loginUser = loginUserStore.loginUser
+      if (!loginUser || loginUser.userRole !== "admin") {
+        return false
+      }
+    } else if (menu.key.startsWith('/user')) {
+      const loginUser = loginUserStore.loginUser
+      if (loginUser && loginUser.userName === "未登录") {
+        return false
+      }
+    }
+    return true
+  })
+}
+
+// 展示在菜单的路由数组
+const items = computed<MenuProps['items']>(() => filterMenus(originItems))
 
 import { useRoute, RouterLink } from 'vue-router'
 const route = useRoute()
@@ -130,7 +180,7 @@ const pagination = reactive({
 })
 
 // 在script setup中添加目录相关的变量和方法
-const catalogList = ref<Array<{id: string, text: string, level: number}>>([])
+const catalogList = ref<Array<{ id: string, text: string, level: number }>>([])
 
 // 修改getCatalog方法，确保标题ID正确设置
 const getCatalog = () => {
@@ -560,7 +610,9 @@ onUnmounted(() => {
 /* 修改目录样式 */
 .catalog {
   position: fixed;
-  right: calc(370px);  /* 向左移动370px */;
+  right: calc(370px);
+  /* 向左移动370px */
+  ;
   top: 100px;
   width: 200px;
   background: rgba(255, 255, 255, 0.95);
@@ -672,8 +724,4 @@ onUnmounted(() => {
 .catalog::-webkit-scrollbar-track {
   background: transparent;
 }
-
-
-
-
 </style>

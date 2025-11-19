@@ -16,9 +16,13 @@
       <div class="about-container">
         <div class="profile-section">
           <div class="profile-info">
-            <h2>JI | 95后Java开发者</h2>
-            <div class="job-title">互联网医疗公司Java工程师</div>
-            <div class="experience">5年线上医疗业务开发经验</div>
+
+            <div class="job-title">
+              <p style="margin: 30px 0 30px 0;">本站是JI的个人博客网站</p>
+
+              <p>JI，男，90后，云南人，目前在云南一家互联网医疗公司。有5年Java开发后端开发经验，平时会参与一些Vue3开发。热衷于编程，做饭，收集，游戏，动漫</p>
+            </div>
+
           </div>
         </div>
 
@@ -36,7 +40,7 @@
           <ul>
             <li>电子产品</li>
             <li>新技术</li>
-            <li>涂鸦</li>
+            <li>收集</li>
             <li>生活折腾</li>
           </ul>
         </div>
@@ -56,7 +60,7 @@
 import { createBlogMessageUsingPost, queryArticleIdByDetailUsingPost, queryBlogArticleTitleUsingPost } from '@/api/blogArticleController'
 import { message } from 'ant-design-vue'
 import { log } from 'console'
-import { nextTick, onMounted, reactive, ref, h, watch } from 'vue'
+import { nextTick, onMounted, reactive, ref, h, watch, computed } from 'vue'
 
 // 引入富文本编辑器与样式
 import { Quill, QuillEditor } from '@vueup/vue-quill'
@@ -69,7 +73,7 @@ Quill.register('modules/blotFormatter', BlotFormatter)
 import { MailOutlined, AppstoreOutlined, SettingOutlined } from '@ant-design/icons-vue'
 import { MenuProps } from 'ant-design-vue'
 
-const items = ref<MenuProps['items']>([
+const items1 = ref<MenuProps['items']>([
   {
     key: '/',
     label: h(RouterLink, { to: '/' }, () => '首页'),
@@ -86,6 +90,58 @@ const items = ref<MenuProps['items']>([
     title: '关于',
   },
 ])
+
+// 菜单列表
+const originItems = [
+  {
+    key: '/',
+    label: h(RouterLink, { to: '/' }, () => '首页'),
+    title: '首页',
+  },
+  {
+    key: '/admin/blog/manage',
+    label: h(RouterLink, { to: '/admin/blog/manage' }, () => '管理'),
+    title: '管理',
+  },
+  {
+    key: '/user/blog/edit',
+    label: h(RouterLink, { to: '/user/blog/edit' }, () => '编辑'),
+    title: '博客',
+  },
+  {
+    key: '/blog/message/',
+    label: h(RouterLink, { to: '/blog/message/' }, () => '留言'),
+    title: '留言',
+  },
+  {
+    key: '/blog/about/',
+    label: h(RouterLink, { to: '/blog/about/' }, () => '关于'),
+    title: '关于',
+  },
+]
+import { useLoginUserStore } from '@/stores/useLonginUserStore'
+
+const loginUserStore = useLoginUserStore()
+// 过滤菜单项
+const filterMenus = (menus = [] as MenuProps['items']) => {
+  return menus?.filter((menu) => {
+    if (menu.key.startsWith('/admin')) {
+      const loginUser = loginUserStore.loginUser
+      if (!loginUser || loginUser.userRole !== "admin") {
+        return false
+      }
+    } else if (menu.key.startsWith('/user')) {
+      const loginUser = loginUserStore.loginUser
+      if (loginUser && loginUser.userName === "未登录") {
+        return false
+      }
+    }
+    return true
+  })
+}
+
+// 展示在菜单的路由数组
+const items = computed<MenuProps['items']>(() => filterMenus(originItems))
 
 import { useRoute, RouterLink } from 'vue-router'
 const route = useRoute()

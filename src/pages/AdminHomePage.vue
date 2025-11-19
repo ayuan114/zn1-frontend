@@ -78,7 +78,7 @@
 import { createBlogArticleUsingPost, deleteArticleByIdUsingPost, queryBlogArticleTitleUsingPost, queryCategoryDataUsingPost, queryTagDataUsingPost, uploadUsingPost } from '@/api/blogArticleController'
 import { message, Modal } from 'ant-design-vue'
 import { log } from 'console'
-import { nextTick, onMounted, reactive, ref, h, watch } from 'vue'
+import { nextTick, onMounted, reactive, ref, h, watch, computed } from 'vue'
 
 // 引入富文本编辑器与样式
 import { Quill, QuillEditor } from '@vueup/vue-quill'
@@ -92,7 +92,7 @@ import { MenuProps } from 'ant-design-vue'
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons-vue'
 
 
-const items = ref<MenuProps['items']>([
+const items1 = ref<MenuProps['items']>([
   {
     key: '/',
     label: h(RouterLink, { to: '/' }, () => '首页'),
@@ -104,8 +104,8 @@ const items = ref<MenuProps['items']>([
     title: '管理',
   },
   {
-    key: '/admin/blog/edit',
-    label: h(RouterLink, { to: '/admin/blog/edit' }, () => '编辑'),
+    key: '/user/blog/edit',
+    label: h(RouterLink, { to: '/user/blog/edit' }, () => '编辑'),
     title: '博客',
   },
   {
@@ -119,6 +119,59 @@ const items = ref<MenuProps['items']>([
     title: '关于',
   },
 ])
+
+// 菜单列表
+const originItems = [
+  {
+    key: '/',
+    label: h(RouterLink, { to: '/' }, () => '首页'),
+    title: '首页',
+  },
+  {
+    key: '/admin/blog/manage',
+    label: h(RouterLink, { to: '/admin/blog/manage' }, () => '管理'),
+    title: '管理',
+  },
+  {
+    key: '/user/blog/edit',
+    label: h(RouterLink, { to: '/user/blog/edit' }, () => '编辑'),
+    title: '博客',
+  },
+  {
+    key: '/blog/message/',
+    label: h(RouterLink, { to: '/blog/message/' }, () => '留言'),
+    title: '留言',
+  },
+  {
+    key: '/blog/about/',
+    label: h(RouterLink, { to: '/blog/about/' }, () => '关于'),
+    title: '关于',
+  },
+]
+import { useLoginUserStore } from '@/stores/useLonginUserStore'
+
+const loginUserStore = useLoginUserStore()
+// 过滤菜单项
+const filterMenus = (menus = [] as MenuProps['items']) => {
+  return menus?.filter((menu) => {
+    if (menu.key.startsWith('/admin')) {
+      const loginUser = loginUserStore.loginUser
+      if (!loginUser || loginUser.userRole !== "admin") {
+        return false
+      }
+    } else if (menu.key.startsWith('/user')) {
+      const loginUser = loginUserStore.loginUser
+      if (!loginUser) {
+        return false
+      }
+    }
+    return true
+  })
+}
+
+// 展示在菜单的路由数组
+const items = computed<MenuProps['items']>(() => filterMenus(originItems))
+
 
 import { RouterLink, useRoute, useRouter } from 'vue-router'
 const router = useRouter()
@@ -258,7 +311,7 @@ onMounted(() => {
 // 编辑文章
 const handleEdit = (id: number) => {
   router.push({
-    path: '/admin/blog/edit',
+    path: '/user/blog/edit',
     query: { id }
   })
 }
