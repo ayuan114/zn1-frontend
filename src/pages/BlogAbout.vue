@@ -18,19 +18,34 @@
           <div class="profile-info">
 
             <div class="job-title">
-              <p style="margin: 30px 0 30px 0;">本站是JI的个人博客网站</p>
-
-              <p>JI，男，90后，云南人，目前在云南一家互联网医疗公司。有5年Java开发后端开发经验，平时会参与一些Vue3开发。热衷于编程，做饭，收集，游戏，动漫</p>
+              <h3>JI (jayce)</h3>
+              <div style="text-align: left;">
+                <p>
+                  这是JI的个人博客网站，本站用了Spring Boot + Mybatis-Plus + Vue3 + Ant Design
+                  Vue等技术开发完成。我是一名Java后端开发工程师，会一些Vue前端。在这个博客网站中，我将分享我的技术心得、生活感悟和兴趣爱好。
+                  我希望通过这个平台，与更多的朋友交流、学习和成长。
+                </p>
+                <p>邮箱：jizuyuan@outlook.com</p>
+              </div>
             </div>
-
           </div>
+        </div>
+
+        <div class="gallery">
+          <h3>项目地址</h3>
+          <a href="https://github.com/ayuan114/zn1-frontend" target="_blank" class="gallery-link">JI'S BLOG前端 - 项目地址</a>
+          <p></p>
+          <a href="https://github.com/ayuan114/zn1-backend" target="_blank" class="gallery-link">JI'S BLOG后端 - 项目地址</a>
+          <p></p>
+          <a href="http://beer.jizy.top" target="_blank" class="gallery-link">来杯尼格罗尼 - 个人图库 </a>
+
         </div>
 
         <div class="tech-stack">
           <h3>技术栈</h3>
           <div class="tech-items">
             <span class="tech-item">Java后端</span>
-            <span class="tech-item">前端</span>
+            <span class="tech-item">Vue前端</span>
             <span class="tech-item">AI探索</span>
           </div>
         </div>
@@ -45,10 +60,7 @@
           </ul>
         </div>
 
-        <div class="gallery">
-          <h3>个人图库</h3>
-          <a href="http://beer.jizy.top" target="_blank" class="gallery-link">来杯尼格罗尼</a>
-        </div>
+
 
       </div>
     </div>
@@ -410,7 +422,7 @@ const handleSubmit = async (values: any) => {
   text-decoration: none;
   font-weight: 500;
   transition: all 0.3s;
-  display: inline-flex;
+
   align-items: center;
 }
 
