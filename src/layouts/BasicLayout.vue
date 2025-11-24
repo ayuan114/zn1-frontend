@@ -45,10 +45,9 @@
           </div>
         </div>
 
-
-
         <div class="footer-bottom">
           <p target="_blank">@2025 JI'S BLOG BY JI </p>
+          <a href="https://beian.miit.gov.cn/" style="color: #000;" target="_blank">滇ICP备2025057768号-1</a>
         </div>
       </a-layout-footer>
     </a-layout>
