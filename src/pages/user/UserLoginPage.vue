@@ -24,7 +24,7 @@
       </a-form-item>
       <div class="tips">
         没有账号？
-        <RouterLink to="/register/user">去注册</RouterLink>
+        <RouterLink to="/blog/register/">去注册</RouterLink>
       </div>
       <a-form-item>
         <a-button type="primary" html-type="submit" style="width: 100%">登录</a-button>

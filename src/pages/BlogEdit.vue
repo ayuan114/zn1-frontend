@@ -465,7 +465,7 @@ const handleSubmit = async (values: API.BlogArticleDTO) => {
 
     if (res.data.code === 0) {
       message.success(isEdit ? '文章更新成功' : '文章创建成功')
-      router.push('/admin/blog/manage')  // 操作完成后跳转到管理页面
+      router.push('/')  // 操作完成后跳转到管理页面
     } else {
       message.error((isEdit ? '更新' : '创建') + '失败，' + res.data.message)
     }

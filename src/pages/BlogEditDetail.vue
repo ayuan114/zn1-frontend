@@ -251,7 +251,7 @@ const tagOptions = ref<API.Tag[]>([])
 
 // 获取分类名称
 const getCategoryName = (categoryId: number) => {
-  const category = categoryOptions.value.find(c => c.value === Number(categoryId))
+  const category = categoryOptions.value.find(c => Number(c.value) === Number(categoryId))
   return category ? category.label : ''
 }
 
@@ -259,7 +259,7 @@ const getCategoryName = (categoryId: number) => {
 const getTagNames = (tags: string | string[]) => {
   const tagIds = Array.isArray(tags) ? tags : tags.split(',')
   return tagIds.map(id => {
-    const tag = tagOptions.value.find(t => t.value === Number(id))
+    const tag = tagOptions.value.find(t => Number(t.value) === Number(id))
     return tag ? tag.label : ''
   }).join(', ')
 }

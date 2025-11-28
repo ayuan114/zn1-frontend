@@ -22,14 +22,14 @@ router.beforeEach(async (to, from, next) => {
   if (toUrl.startsWith('/admin')) {
     if (!loginUser || loginUser.userRole !== 'admin') {
       message.error('没有权限')
-      next(`/login/user?redirect=${to.fullPath}`)
+      next(`/blog/login/?redirect=${to.fullPath}`)
       return
     }
   }
   else if (toUrl.startsWith('/user/')) {
       if (!loginUser || loginUser.userName === "未登录") {
         message.error('未登录,没有权限')
-        next(`/login/user?redirect=${to.fullPath}`)
+        next(`/blog/login/?redirect=${to.fullPath}`)
          return
       }
     }

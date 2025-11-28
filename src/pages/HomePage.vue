@@ -184,15 +184,21 @@ const queryParams = reactive({
 const fetchArticles = async () => {
   loading.value = true
   try {
-    console.log(queryParams, '22222')
+    // 先加载分类和标签数据
+    await Promise.all([
+      getCategoryOptions(),
+      getTagOptions()
+    ])
+
+    // 再加载文章数据
     const res = await queryBlogArticleTitleUsingPost({
       current: pagination.current,
       pageSize: pagination.pageSize,
       title: queryParams.title,
       tags: queryParams.tags,
       categoryId: queryParams.categoryId,
-      sortField: pagination.createTime,  // 添加排序字段
-      sortOrder: pagination.sortOrder         // 添加排序方向（降序）
+      sortField: pagination.createTime,
+      sortOrder: pagination.sortOrder
     })
     if (res.data.code === 0 && res.data.data) {
       articles.value = res.data.data.records || []
@@ -213,18 +219,21 @@ const fetchArticles = async () => {
 const categoryOptions = ref<API.Category[]>([])
 const tagOptions = ref<API.Tag[]>([])
 
-// 获取分类名称
+// 修改 getCategoryName 函数
 const getCategoryName = (categoryId: number) => {
-  const category = categoryOptions.value.find(c => c.value === Number(categoryId))
-  return category ? category.label : ''
+  if (!categoryId || !categoryOptions.value.length) return ''
+
+  const category = categoryOptions.value.find(c => Number(c.value) === Number(categoryId))
+  return category ? category.label : '未分类'
 }
 
-// 获取标签名称
+// 修改 getTagNames 函数
 const getTagNames = (tags: string | string[]) => {
+  if (!tags || !tagOptions.value.length) return ''
   const tagIds = Array.isArray(tags) ? tags : tags.split(',')
   return tagIds.map(id => {
-    const tag = tagOptions.value.find(t => t.value === Number(id))
-    return tag ? tag.label : ''
+    const tag = tagOptions.value.find(t => Number(t.value) === Number(id))
+    return tag ? tag.label : '未标记'
   }).join(', ')
 }
 

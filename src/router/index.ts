@@ -38,12 +38,12 @@ const router = createRouter({
       component: () => import('@/pages/BlogAbout.vue'),
     },
         {
-      path: '/login/user/',
+      path: '/blog/login/',
       name: 'login',
       component: () => import('@/pages/user/UserLoginPage.vue'),
     },
             {
-      path: '/register/user/',
+      path: '/blog/register/',
       name: 'register',
       component: () => import('@/pages/user/UserRegisterPage.vue'),
     },
